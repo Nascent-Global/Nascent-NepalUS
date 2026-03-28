@@ -1,4 +1,4 @@
-import 'package:sqflite/sqflite.dart';
+import 'package:drift/drift.dart' as drift;
 import 'package:uuid/uuid.dart';
 
 import '../../core/constants.dart';
@@ -18,24 +18,33 @@ class LocalBurnoutRepository implements BurnoutRepository {
   final AppDatabase _database;
   final Uuid _uuid = const Uuid();
 
-  Future<Database> get _db async => _database.database;
-
   @override
   Future<void> saveDailyEntry(DailyEntry entry) async {
-    final db = await _db;
-    await db.insert(DbTables.dailyEntries, entry.toMap());
+    await _database
+        .into(_database.dailyEntries)
+        .insert(
+          DailyEntriesCompanion.insert(
+            id: entry.id,
+            date: entry.date,
+            sleepHours: entry.sleepHours,
+            workHours: entry.workHours,
+            mood: entry.mood,
+            wasOk: entry.wasOk,
+            createdAt: drift.Value(entry.createdAt.toUtc()),
+            synced: drift.Value(entry.synced),
+          ),
+        );
   }
 
   @override
   Future<BurnoutScore?> getLatestScore() async {
-    final db = await _db;
-    final rows = await db.query(
-      DbTables.burnoutScores,
-      orderBy: 'created_at DESC',
-      limit: 1,
-    );
-    if (rows.isEmpty) return null;
-    return BurnoutScore.fromMap(rows.first);
+    final row =
+        await (_database.select(_database.burnoutScores)
+              ..orderBy([(t) => drift.OrderingTerm.desc(t.createdAt)])
+              ..limit(1))
+            .getSingleOrNull();
+
+    return row == null ? null : _toBurnoutScore(row);
   }
 
   @override
@@ -43,102 +52,125 @@ class LocalBurnoutRepository implements BurnoutRepository {
     DateTime from,
     DateTime to,
   ) async {
-    final db = await _db;
     final fromKey = AppDateUtils.dateKeyUtc(from);
     final toKey = AppDateUtils.dateKeyUtc(to);
-    final rows = await db.query(
-      DbTables.burnoutScores,
-      where: 'date BETWEEN ? AND ?',
-      whereArgs: [fromKey, toKey],
-      orderBy: 'date ASC, created_at ASC',
-    );
-    return rows.map(BurnoutScore.fromMap).toList();
+
+    final rows =
+        await (_database.select(_database.burnoutScores)
+              ..where((t) => t.date.isBetweenValues(fromKey, toKey))
+              ..orderBy([
+                (t) => drift.OrderingTerm.asc(t.date),
+                (t) => drift.OrderingTerm.asc(t.createdAt),
+              ]))
+            .get();
+
+    return rows.map(_toBurnoutScore).toList();
   }
 
   @override
   Future<List<BurnoutTask>> getTasksByDate(DateTime date) async {
-    final db = await _db;
     final key = AppDateUtils.dateKeyUtc(date);
-    final rows = await db.query(
-      DbTables.tasks,
-      where: 'date = ?',
-      whereArgs: [key],
-      orderBy: 'completed ASC, priority DESC, created_at DESC',
-    );
-    return rows.map(BurnoutTask.fromMap).toList();
+    final rows =
+        await (_database.select(_database.tasks)
+              ..where((t) => t.date.equals(key))
+              ..orderBy([
+                (t) => drift.OrderingTerm.asc(t.completed),
+                (t) => drift.OrderingTerm.desc(t.priority),
+                (t) => drift.OrderingTerm.desc(t.createdAt),
+              ]))
+            .get();
+
+    return rows.map(_toBurnoutTask).toList();
   }
 
   @override
   Future<void> upsertTask(BurnoutTask task) async {
-    final db = await _db;
-    await db.insert(
-      DbTables.tasks,
-      task.toMap(),
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    await _database
+        .into(_database.tasks)
+        .insertOnConflictUpdate(
+          TasksCompanion(
+            id: drift.Value(task.id),
+            date: drift.Value(task.date),
+            title: drift.Value(task.title),
+            deadline: drift.Value(task.deadline?.toUtc()),
+            priority: drift.Value(task.priority),
+            completed: drift.Value(task.completed),
+            taskType: drift.Value(task.taskType),
+            reason: drift.Value(task.reason),
+            createdAt: drift.Value(task.createdAt.toUtc()),
+            synced: drift.Value(task.synced),
+          ),
+        );
   }
 
   @override
   Future<void> completeTask(String id) async {
-    final db = await _db;
-    await db.transaction((txn) async {
-      final taskRows = await txn.query(
-        DbTables.tasks,
-        where: 'id = ?',
-        whereArgs: [id],
-        limit: 1,
-      );
-      if (taskRows.isEmpty) return;
-
-      final task = BurnoutTask.fromMap(taskRows.first);
-      if (task.completed) return;
-
-      await txn.update(
-        DbTables.tasks,
-        {'completed': 1, 'synced': 0},
-        where: 'id = ?',
-        whereArgs: [id],
-      );
-
-      if (task.taskType != 'recovery') {
+    await _database.transaction(() async {
+      final taskRow =
+          await (_database.select(_database.tasks)
+                ..where((t) => t.id.equals(id))
+                ..limit(1))
+              .getSingleOrNull();
+      if (taskRow == null || taskRow.completed) {
         return;
       }
 
-      final latestScoreRows = await txn.query(
-        DbTables.burnoutScores,
-        orderBy: 'created_at DESC',
-        limit: 1,
+      await (_database.update(
+        _database.tasks,
+      )..where((t) => t.id.equals(id))).write(
+        const TasksCompanion(
+          completed: drift.Value(true),
+          synced: drift.Value(false),
+        ),
       );
-      if (latestScoreRows.isEmpty) {
+
+      if (taskRow.taskType != 'recovery') {
         return;
       }
-      final latestScore = BurnoutScore.fromMap(latestScoreRows.first);
+
+      final latestScoreRow =
+          await (_database.select(_database.burnoutScores)
+                ..orderBy([(t) => drift.OrderingTerm.desc(t.createdAt)])
+                ..limit(1))
+              .getSingleOrNull();
+
+      if (latestScoreRow == null) {
+        return;
+      }
 
       final impact =
-          AppConstants.recoveryImpactByTaskType[task.reason ?? ''] ??
+          AppConstants.recoveryImpactByTaskType[taskRow.reason ?? ''] ??
           AppConstants.recoveryImpactByTaskType['general_recovery']!;
-      final nextScore = (latestScore.score - impact).clamp(0, 100);
+      final nextScore = (latestScoreRow.score - impact).clamp(0, 100);
       final nextClassification = _classify(nextScore);
       final snapshotId = _uuid.v4();
       final now = AppDateUtils.nowUtc();
 
-      await txn.insert(DbTables.burnoutScores, {
-        'id': snapshotId,
-        'date': latestScore.date,
-        'score': nextScore,
-        'classification': nextClassification,
-        'created_at': AppDateUtils.toUtcIso(now),
-        'synced': 0,
-      });
+      await _database
+          .into(_database.burnoutScores)
+          .insert(
+            BurnoutScoresCompanion.insert(
+              id: snapshotId,
+              date: latestScoreRow.date,
+              score: nextScore,
+              classification: nextClassification,
+              createdAt: drift.Value(now),
+              synced: const drift.Value(false),
+            ),
+          );
 
-      await txn.insert(DbTables.scoreLogs, {
-        'id': _uuid.v4(),
-        'score_id': snapshotId,
-        'change_amount': -impact,
-        'reason': 'Completed recovery task: ${task.title}',
-        'created_at': AppDateUtils.toUtcIso(now),
-        'synced': 0,
-      });
+      await _database
+          .into(_database.scoreLogs)
+          .insert(
+            ScoreLogsCompanion.insert(
+              id: _uuid.v4(),
+              scoreId: snapshotId,
+              changeAmount: -impact,
+              reason: 'Completed recovery task: ${taskRow.title}',
+              createdAt: drift.Value(now),
+              synced: const drift.Value(false),
+            ),
+          );
     });
   }
 
@@ -148,21 +180,34 @@ class LocalBurnoutRepository implements BurnoutRepository {
     required int changeAmount,
     required String reason,
   }) async {
-    final db = await _db;
-    await db.insert(DbTables.scoreLogs, {
-      'id': _uuid.v4(),
-      'score_id': scoreId,
-      'change_amount': changeAmount,
-      'reason': reason,
-      'created_at': AppDateUtils.toUtcIso(AppDateUtils.nowUtc()),
-      'synced': 0,
-    });
+    await _database
+        .into(_database.scoreLogs)
+        .insert(
+          ScoreLogsCompanion.insert(
+            id: _uuid.v4(),
+            scoreId: scoreId,
+            changeAmount: changeAmount,
+            reason: reason,
+            createdAt: drift.Value(AppDateUtils.nowUtc()),
+            synced: const drift.Value(false),
+          ),
+        );
   }
 
   @override
   Future<void> insertAlert(AppAlert alert) async {
-    final db = await _db;
-    await db.insert(DbTables.alerts, alert.toMap());
+    await _database
+        .into(_database.alerts)
+        .insert(
+          AlertsCompanion.insert(
+            id: alert.id,
+            date: alert.date,
+            type: alert.type,
+            message: alert.message,
+            createdAt: drift.Value(alert.createdAt.toUtc()),
+            synced: drift.Value(alert.synced),
+          ),
+        );
   }
 
   @override
@@ -170,18 +215,22 @@ class LocalBurnoutRepository implements BurnoutRepository {
     required DateTime startTime,
     required int durationMinutes,
   }) async {
-    final db = await _db;
     final id = _uuid.v4();
     final now = AppDateUtils.nowUtc();
-    await db.insert(DbTables.pomodoroSessions, {
-      'id': id,
-      'start_time': AppDateUtils.toUtcIso(startTime),
-      'end_time': null,
-      'duration': durationMinutes,
-      'completed': 0,
-      'created_at': AppDateUtils.toUtcIso(now),
-      'synced': 0,
-    });
+
+    await _database
+        .into(_database.pomodoroSessions)
+        .insert(
+          PomodoroSessionsCompanion.insert(
+            id: id,
+            startTime: startTime.toUtc(),
+            duration: drift.Value(durationMinutes),
+            completed: const drift.Value(false),
+            createdAt: drift.Value(now),
+            synced: const drift.Value(false),
+          ),
+        );
+
     return id;
   }
 
@@ -191,16 +240,14 @@ class LocalBurnoutRepository implements BurnoutRepository {
     required DateTime endTime,
     required bool completed,
   }) async {
-    final db = await _db;
-    await db.update(
-      DbTables.pomodoroSessions,
-      {
-        'end_time': AppDateUtils.toUtcIso(endTime),
-        'completed': completed ? 1 : 0,
-        'synced': 0,
-      },
-      where: 'id = ?',
-      whereArgs: [id],
+    await (_database.update(
+      _database.pomodoroSessions,
+    )..where((t) => t.id.equals(id))).write(
+      PomodoroSessionsCompanion(
+        endTime: drift.Value(endTime.toUtc()),
+        completed: drift.Value(completed),
+        synced: const drift.Value(false),
+      ),
     );
   }
 
@@ -209,17 +256,22 @@ class LocalBurnoutRepository implements BurnoutRepository {
     required DateTime startedAt,
     required int durationMinutes,
   }) async {
-    final db = await _db;
     final id = _uuid.v4();
     final now = AppDateUtils.nowUtc();
-    await db.insert(DbTables.breathingSessions, {
-      'id': id,
-      'started_at': AppDateUtils.toUtcIso(startedAt),
-      'duration': durationMinutes,
-      'completed': 0,
-      'created_at': AppDateUtils.toUtcIso(now),
-      'synced': 0,
-    });
+
+    await _database
+        .into(_database.breathingSessions)
+        .insert(
+          BreathingSessionsCompanion.insert(
+            id: id,
+            startedAt: startedAt.toUtc(),
+            duration: durationMinutes,
+            completed: false,
+            createdAt: drift.Value(now),
+            synced: const drift.Value(false),
+          ),
+        );
+
     return id;
   }
 
@@ -228,27 +280,28 @@ class LocalBurnoutRepository implements BurnoutRepository {
     required String id,
     required bool completed,
   }) async {
-    final db = await _db;
-    await db.update(
-      DbTables.breathingSessions,
-      {'completed': completed ? 1 : 0, 'synced': 0},
-      where: 'id = ?',
-      whereArgs: [id],
+    await (_database.update(
+      _database.breathingSessions,
+    )..where((t) => t.id.equals(id))).write(
+      BreathingSessionsCompanion(
+        completed: drift.Value(completed),
+        synced: const drift.Value(false),
+      ),
     );
   }
 
   @override
   Future<DailyEntry?> getLatestDailyEntryForDate(DateTime date) async {
-    final db = await _db;
-    final rows = await db.query(
-      DbTables.dailyEntries,
-      where: 'date = ?',
-      whereArgs: [AppDateUtils.dateKeyUtc(date)],
-      orderBy: 'created_at DESC',
-      limit: 1,
-    );
-    if (rows.isEmpty) return null;
-    return DailyEntry.fromMap(rows.first);
+    final key = AppDateUtils.dateKeyUtc(date);
+
+    final row =
+        await (_database.select(_database.dailyEntries)
+              ..where((t) => t.date.equals(key))
+              ..orderBy([(t) => drift.OrderingTerm.desc(t.createdAt)])
+              ..limit(1))
+            .getSingleOrNull();
+
+    return row == null ? null : _toDailyEntry(row);
   }
 
   @override
@@ -258,28 +311,35 @@ class LocalBurnoutRepository implements BurnoutRepository {
     required String classification,
     required List<String> causes,
   }) async {
-    final db = await _db;
     final scoreId = _uuid.v4();
     final now = AppDateUtils.nowUtc();
 
-    await db.transaction((txn) async {
-      await txn.insert(DbTables.burnoutScores, {
-        'id': scoreId,
-        'date': AppDateUtils.dateKeyUtc(date),
-        'score': score,
-        'classification': classification,
-        'created_at': AppDateUtils.toUtcIso(now),
-        'synced': 0,
-      });
+    await _database.transaction(() async {
+      await _database
+          .into(_database.burnoutScores)
+          .insert(
+            BurnoutScoresCompanion.insert(
+              id: scoreId,
+              date: AppDateUtils.dateKeyUtc(date),
+              score: score,
+              classification: classification,
+              createdAt: drift.Value(now),
+              synced: const drift.Value(false),
+            ),
+          );
 
       for (final cause in causes) {
-        await txn.insert(DbTables.burnoutCauses, {
-          'id': _uuid.v4(),
-          'score_id': scoreId,
-          'cause_type': cause,
-          'created_at': AppDateUtils.toUtcIso(now),
-          'synced': 0,
-        });
+        await _database
+            .into(_database.burnoutCauses)
+            .insert(
+              BurnoutCausesCompanion.insert(
+                id: _uuid.v4(),
+                scoreId: scoreId,
+                causeType: cause,
+                createdAt: drift.Value(now),
+                synced: const drift.Value(false),
+              ),
+            );
       }
     });
 
@@ -288,53 +348,131 @@ class LocalBurnoutRepository implements BurnoutRepository {
 
   @override
   Future<List<String>> getCausesByScoreId(String scoreId) async {
-    final db = await _db;
-    final rows = await db.query(
-      DbTables.burnoutCauses,
-      columns: ['cause_type'],
-      where: 'score_id = ?',
-      whereArgs: [scoreId],
-    );
-    return rows.map((e) => e['cause_type'] as String).toList();
+    final rows = await (_database.select(
+      _database.burnoutCauses,
+    )..where((t) => t.scoreId.equals(scoreId))).get();
+
+    return rows.map((e) => e.causeType).toList();
   }
 
   @override
   Future<List<AppAlert>> getAlerts({int limit = 30}) async {
-    final db = await _db;
-    final rows = await db.query(
-      DbTables.alerts,
-      orderBy: 'created_at DESC',
-      limit: limit,
-    );
-    return rows.map(AppAlert.fromMap).toList();
+    final rows =
+        await (_database.select(_database.alerts)
+              ..orderBy([(t) => drift.OrderingTerm.desc(t.createdAt)])
+              ..limit(limit))
+            .get();
+
+    return rows.map(_toAlert).toList();
   }
 
   @override
   Future<List<PomodoroSession>> getPomodoroByDate(DateTime date) async {
-    final db = await _db;
     final start = AppDateUtils.dateKeyToUtcStart(AppDateUtils.dateKeyUtc(date));
     final end = start.add(const Duration(days: 1));
-    final rows = await db.query(
-      DbTables.pomodoroSessions,
-      where: 'start_time >= ? AND start_time < ?',
-      whereArgs: [AppDateUtils.toUtcIso(start), AppDateUtils.toUtcIso(end)],
-      orderBy: 'start_time DESC',
-    );
-    return rows.map(PomodoroSession.fromMap).toList();
+
+    final rows =
+        await (_database.select(_database.pomodoroSessions)
+              ..where(
+                (t) =>
+                    t.startTime.isBiggerOrEqualValue(start) &
+                    t.startTime.isSmallerThanValue(end),
+              )
+              ..orderBy([(t) => drift.OrderingTerm.desc(t.startTime)]))
+            .get();
+
+    return rows.map(_toPomodoroSession).toList();
   }
 
   @override
   Future<List<BreathingSession>> getBreathingByDate(DateTime date) async {
-    final db = await _db;
     final start = AppDateUtils.dateKeyToUtcStart(AppDateUtils.dateKeyUtc(date));
     final end = start.add(const Duration(days: 1));
-    final rows = await db.query(
-      DbTables.breathingSessions,
-      where: 'started_at >= ? AND started_at < ?',
-      whereArgs: [AppDateUtils.toUtcIso(start), AppDateUtils.toUtcIso(end)],
-      orderBy: 'started_at DESC',
+
+    final rows =
+        await (_database.select(_database.breathingSessions)
+              ..where(
+                (t) =>
+                    t.startedAt.isBiggerOrEqualValue(start) &
+                    t.startedAt.isSmallerThanValue(end),
+              )
+              ..orderBy([(t) => drift.OrderingTerm.desc(t.startedAt)]))
+            .get();
+
+    return rows.map(_toBreathingSession).toList();
+  }
+
+  BurnoutScore _toBurnoutScore(BurnoutScoreRow row) {
+    return BurnoutScore(
+      id: row.id,
+      date: row.date,
+      score: row.score,
+      classification: row.classification,
+      createdAt: row.createdAt.toUtc(),
+      synced: row.synced,
     );
-    return rows.map(BreathingSession.fromMap).toList();
+  }
+
+  DailyEntry _toDailyEntry(DailyEntryRow row) {
+    return DailyEntry(
+      id: row.id,
+      date: row.date,
+      sleepHours: row.sleepHours,
+      workHours: row.workHours,
+      mood: row.mood,
+      wasOk: row.wasOk,
+      createdAt: row.createdAt.toUtc(),
+      synced: row.synced,
+    );
+  }
+
+  BurnoutTask _toBurnoutTask(TaskRow row) {
+    return BurnoutTask(
+      id: row.id,
+      date: row.date,
+      title: row.title,
+      deadline: row.deadline?.toUtc(),
+      priority: row.priority,
+      completed: row.completed,
+      taskType: row.taskType,
+      createdAt: row.createdAt.toUtc(),
+      synced: row.synced,
+      reason: row.reason,
+    );
+  }
+
+  AppAlert _toAlert(AlertRow row) {
+    return AppAlert(
+      id: row.id,
+      date: row.date,
+      type: row.type,
+      message: row.message,
+      createdAt: row.createdAt.toUtc(),
+      synced: row.synced,
+    );
+  }
+
+  PomodoroSession _toPomodoroSession(PomodoroSessionRow row) {
+    return PomodoroSession(
+      id: row.id,
+      startTime: row.startTime.toUtc(),
+      endTime: row.endTime?.toUtc(),
+      duration: row.duration ?? 0,
+      completed: row.completed ?? false,
+      createdAt: row.createdAt.toUtc(),
+      synced: row.synced,
+    );
+  }
+
+  BreathingSession _toBreathingSession(BreathingSessionRow row) {
+    return BreathingSession(
+      id: row.id,
+      startedAt: row.startedAt.toUtc(),
+      duration: row.duration,
+      completed: row.completed,
+      createdAt: row.createdAt.toUtc(),
+      synced: row.synced,
+    );
   }
 
   String _classify(int score) {

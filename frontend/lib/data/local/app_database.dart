@@ -1,155 +1,286 @@
+import 'dart:io';
+
+import 'package:drift/drift.dart';
+import 'package:drift/native.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
-import 'package:sqflite/sqflite.dart';
 
 import '../../core/constants.dart';
 
-class AppDatabase {
-  AppDatabase._();
+part 'app_database.g.dart';
 
-  static final AppDatabase instance = AppDatabase._();
+@DataClassName('UserProfileRow')
+class UserProfiles extends Table {
+  @override
+  String get tableName => 'user_profile';
 
-  Database? _db;
+  TextColumn get id => text()();
 
-  Future<Database> get database async {
-    if (_db != null) return _db!;
-    final dir = await getApplicationDocumentsDirectory();
-    final dbPath = p.join(dir.path, 'burnout_radar.db');
-    _db = await openDatabase(
-      dbPath,
-      version: 1,
-      onConfigure: (db) async {
-        await db.execute('PRAGMA foreign_keys = ON');
-        await db.execute('PRAGMA journal_mode = WAL');
+  TextColumn get username => text()();
+
+  TextColumn get avatar => text()();
+
+  TextColumn get timezone => text()();
+
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+
+  BoolColumn get synced => boolean().withDefault(const Constant(false))();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+@DataClassName('DailyEntryRow')
+class DailyEntries extends Table {
+  @override
+  String get tableName => 'daily_entries';
+
+  TextColumn get id => text()();
+
+  TextColumn get date => text()();
+
+  RealColumn get sleepHours => real()();
+
+  RealColumn get workHours => real()();
+
+  IntColumn get mood =>
+      integer().customConstraint('NOT NULL CHECK (mood BETWEEN 1 AND 5)')();
+
+  BoolColumn get wasOk => boolean()();
+
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+
+  BoolColumn get synced => boolean().withDefault(const Constant(false))();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+@DataClassName('BurnoutScoreRow')
+class BurnoutScores extends Table {
+  @override
+  String get tableName => 'burnout_scores';
+
+  TextColumn get id => text()();
+
+  TextColumn get date => text()();
+
+  IntColumn get score =>
+      integer().customConstraint('NOT NULL CHECK (score BETWEEN 0 AND 100)')();
+
+  TextColumn get classification => text().customConstraint(
+    "NOT NULL CHECK (classification IN ('low','medium','high'))",
+  )();
+
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+
+  BoolColumn get synced => boolean().withDefault(const Constant(false))();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+@DataClassName('BurnoutCauseRow')
+class BurnoutCauses extends Table {
+  @override
+  String get tableName => 'burnout_causes';
+
+  TextColumn get id => text()();
+
+  TextColumn get scoreId =>
+      text().references(BurnoutScores, #id, onDelete: KeyAction.cascade)();
+
+  TextColumn get causeType => text()();
+
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+
+  BoolColumn get synced => boolean().withDefault(const Constant(false))();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+@DataClassName('TaskRow')
+class Tasks extends Table {
+  @override
+  String get tableName => 'tasks';
+
+  TextColumn get id => text()();
+
+  TextColumn get date => text()();
+
+  TextColumn get title => text()();
+
+  DateTimeColumn get deadline => dateTime().nullable()();
+
+  IntColumn get priority => integer().withDefault(const Constant(1))();
+
+  BoolColumn get completed => boolean().withDefault(const Constant(false))();
+
+  TextColumn get taskType => text().customConstraint(
+    "NOT NULL CHECK (task_type IN ('user','recovery'))",
+  )();
+
+  TextColumn get reason => text().nullable()();
+
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+
+  BoolColumn get synced => boolean().withDefault(const Constant(false))();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+@DataClassName('ScoreLogRow')
+class ScoreLogs extends Table {
+  @override
+  String get tableName => 'score_logs';
+
+  TextColumn get id => text()();
+
+  TextColumn get scoreId =>
+      text().references(BurnoutScores, #id, onDelete: KeyAction.cascade)();
+
+  IntColumn get changeAmount => integer()();
+
+  TextColumn get reason => text()();
+
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+
+  BoolColumn get synced => boolean().withDefault(const Constant(false))();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+@DataClassName('PomodoroSessionRow')
+class PomodoroSessions extends Table {
+  @override
+  String get tableName => 'pomodoro_sessions';
+
+  TextColumn get id => text()();
+
+  DateTimeColumn get startTime => dateTime()();
+
+  DateTimeColumn get endTime => dateTime().nullable()();
+
+  IntColumn get duration => integer().nullable()();
+
+  BoolColumn get completed => boolean().nullable()();
+
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+
+  BoolColumn get synced => boolean().withDefault(const Constant(false))();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+@DataClassName('BreathingSessionRow')
+class BreathingSessions extends Table {
+  @override
+  String get tableName => 'breathing_sessions';
+
+  TextColumn get id => text()();
+
+  DateTimeColumn get startedAt => dateTime()();
+
+  IntColumn get duration => integer()();
+
+  BoolColumn get completed => boolean()();
+
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+
+  BoolColumn get synced => boolean().withDefault(const Constant(false))();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+@DataClassName('AlertRow')
+class Alerts extends Table {
+  @override
+  String get tableName => 'alerts';
+
+  TextColumn get id => text()();
+
+  TextColumn get date => text()();
+
+  TextColumn get type => text()();
+
+  TextColumn get message => text()();
+
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+
+  BoolColumn get synced => boolean().withDefault(const Constant(false))();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+@DriftDatabase(
+  tables: [
+    UserProfiles,
+    DailyEntries,
+    BurnoutScores,
+    BurnoutCauses,
+    Tasks,
+    ScoreLogs,
+    PomodoroSessions,
+    BreathingSessions,
+    Alerts,
+  ],
+)
+class AppDatabase extends _$AppDatabase {
+  static final AppDatabase instance = AppDatabase();
+
+  AppDatabase() : super(_openConnection());
+
+  AppDatabase.forTesting(super.executor);
+
+  @override
+  int get schemaVersion => 1;
+
+  @override
+  MigrationStrategy get migration {
+    return MigrationStrategy(
+      onCreate: (Migrator m) async {
+        await m.createAll();
+
+        await customStatement('PRAGMA foreign_keys = ON');
+        await customStatement('PRAGMA journal_mode = WAL');
+
+        await customStatement(
+          'CREATE INDEX IF NOT EXISTS idx_daily_entries_date ON ${DbTables.dailyEntries}(date)',
+        );
+        await customStatement(
+          'CREATE INDEX IF NOT EXISTS idx_burnout_scores_date ON ${DbTables.burnoutScores}(date)',
+        );
+        await customStatement(
+          'CREATE INDEX IF NOT EXISTS idx_burnout_scores_created ON ${DbTables.burnoutScores}(created_at)',
+        );
+        await customStatement(
+          'CREATE INDEX IF NOT EXISTS idx_tasks_date ON ${DbTables.tasks}(date)',
+        );
+        await customStatement(
+          'CREATE INDEX IF NOT EXISTS idx_tasks_type ON ${DbTables.tasks}(task_type)',
+        );
+        await customStatement(
+          'CREATE INDEX IF NOT EXISTS idx_pomodoro_start ON ${DbTables.pomodoroSessions}(start_time)',
+        );
       },
-      onCreate: _onCreate,
-    );
-    return _db!;
-  }
-
-  Future<void> _onCreate(Database db, int version) async {
-    await db.execute('''
-      CREATE TABLE ${DbTables.userProfile} (
-        id TEXT PRIMARY KEY,
-        username TEXT NOT NULL,
-        avatar TEXT NOT NULL,
-        timezone TEXT NOT NULL,
-        created_at TEXT NOT NULL,
-        synced INTEGER NOT NULL DEFAULT 0 CHECK (synced IN (0,1))
-      )
-    ''');
-
-    await db.execute('''
-      CREATE TABLE ${DbTables.dailyEntries} (
-        id TEXT PRIMARY KEY,
-        date TEXT NOT NULL,
-        sleep_hours REAL,
-        work_hours REAL,
-        mood INTEGER CHECK (mood BETWEEN 1 AND 5),
-        was_ok INTEGER CHECK (was_ok IN (0,1)),
-        created_at TEXT NOT NULL,
-        synced INTEGER NOT NULL DEFAULT 0 CHECK (synced IN (0,1))
-      )
-    ''');
-
-    await db.execute('''
-      CREATE TABLE ${DbTables.burnoutScores} (
-        id TEXT PRIMARY KEY,
-        date TEXT NOT NULL,
-        score INTEGER CHECK (score BETWEEN 0 AND 100),
-        classification TEXT CHECK (classification IN ('low','medium','high')),
-        created_at TEXT NOT NULL,
-        synced INTEGER NOT NULL DEFAULT 0 CHECK (synced IN (0,1))
-      )
-    ''');
-
-    await db.execute('''
-      CREATE TABLE ${DbTables.burnoutCauses} (
-        id TEXT PRIMARY KEY,
-        score_id TEXT NOT NULL,
-        cause_type TEXT NOT NULL,
-        created_at TEXT NOT NULL,
-        synced INTEGER NOT NULL DEFAULT 0 CHECK (synced IN (0,1)),
-        FOREIGN KEY(score_id) REFERENCES ${DbTables.burnoutScores}(id) ON DELETE CASCADE
-      )
-    ''');
-
-    await db.execute('''
-      CREATE TABLE ${DbTables.tasks} (
-        id TEXT PRIMARY KEY,
-        date TEXT NOT NULL,
-        title TEXT NOT NULL,
-        deadline TEXT,
-        priority INTEGER,
-        completed INTEGER NOT NULL DEFAULT 0 CHECK (completed IN (0,1)),
-        task_type TEXT CHECK (task_type IN ('user','recovery')),
-        reason TEXT,
-        created_at TEXT NOT NULL,
-        synced INTEGER NOT NULL DEFAULT 0 CHECK (synced IN (0,1))
-      )
-    ''');
-
-    await db.execute('''
-      CREATE TABLE ${DbTables.scoreLogs} (
-        id TEXT PRIMARY KEY,
-        score_id TEXT NOT NULL,
-        change_amount INTEGER NOT NULL,
-        reason TEXT,
-        created_at TEXT NOT NULL,
-        synced INTEGER NOT NULL DEFAULT 0 CHECK (synced IN (0,1)),
-        FOREIGN KEY(score_id) REFERENCES ${DbTables.burnoutScores}(id) ON DELETE CASCADE
-      )
-    ''');
-
-    await db.execute('''
-      CREATE TABLE ${DbTables.pomodoroSessions} (
-        id TEXT PRIMARY KEY,
-        start_time TEXT NOT NULL,
-        end_time TEXT,
-        duration INTEGER,
-        completed INTEGER CHECK (completed IN (0,1)),
-        created_at TEXT NOT NULL,
-        synced INTEGER NOT NULL DEFAULT 0 CHECK (synced IN (0,1))
-      )
-    ''');
-
-    await db.execute('''
-      CREATE TABLE ${DbTables.breathingSessions} (
-        id TEXT PRIMARY KEY,
-        started_at TEXT,
-        duration INTEGER,
-        completed INTEGER CHECK (completed IN (0,1)),
-        created_at TEXT NOT NULL,
-        synced INTEGER NOT NULL DEFAULT 0 CHECK (synced IN (0,1))
-      )
-    ''');
-
-    await db.execute('''
-      CREATE TABLE ${DbTables.alerts} (
-        id TEXT PRIMARY KEY,
-        date TEXT,
-        type TEXT,
-        message TEXT,
-        created_at TEXT NOT NULL,
-        synced INTEGER NOT NULL DEFAULT 0 CHECK (synced IN (0,1))
-      )
-    ''');
-
-    await db.execute(
-      'CREATE INDEX idx_daily_entries_date ON ${DbTables.dailyEntries}(date)',
-    );
-    await db.execute(
-      'CREATE INDEX idx_burnout_scores_date ON ${DbTables.burnoutScores}(date)',
-    );
-    await db.execute(
-      'CREATE INDEX idx_burnout_scores_created ON ${DbTables.burnoutScores}(created_at)',
-    );
-    await db.execute('CREATE INDEX idx_tasks_date ON ${DbTables.tasks}(date)');
-    await db.execute(
-      'CREATE INDEX idx_tasks_type ON ${DbTables.tasks}(task_type)',
-    );
-    await db.execute(
-      'CREATE INDEX idx_pomodoro_start ON ${DbTables.pomodoroSessions}(start_time)',
+      beforeOpen: (details) async {
+        await customStatement('PRAGMA foreign_keys = ON');
+        await customStatement('PRAGMA journal_mode = WAL');
+      },
     );
   }
+}
+
+LazyDatabase _openConnection() {
+  return LazyDatabase(() async {
+    final dir = await getApplicationDocumentsDirectory();
+    final file = File(p.join(dir.path, 'burnout_radar.db'));
+    return NativeDatabase.createInBackground(file);
+  });
 }
