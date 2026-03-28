@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'app_config.dart';
 import '../data/remote/auth_api_client.dart';
 import '../data/remote/auth_models.dart';
 
@@ -37,12 +38,7 @@ class AuthState {
 }
 
 final authBaseUrlProvider = Provider<String>((ref) {
-  // Override with --dart-define=API_BASE_URL=http://<machine-lan-ip>:<port>
-  // when running on a physical Android device.
-  return const String.fromEnvironment(
-    'API_BASE_URL',
-    defaultValue: 'http://localhost:3001',
-  );
+  return AppConfig.apiBaseUrl;
 });
 
 final authApiClientProvider = Provider<AuthApiClient>((ref) {
