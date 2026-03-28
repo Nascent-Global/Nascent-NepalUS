@@ -57,8 +57,6 @@ INSTALLED_APPS = [
     # Local apps (MVP)
     # User profile / auth extensions
     "users",
-    # # Daily entries (sleep, work, mood)
-    # "daily",
     # # Task planner & completion tracking
     "tasks",
     # Focus / pomodoro sessions
@@ -68,7 +66,7 @@ INSTALLED_APPS = [
     # Alerts / notifications
     "alerts",
     # Breathing Session`
-    # "breathing",
+    "breathing",
 ]
 
 MIDDLEWARE = [
