@@ -47,7 +47,7 @@ RUN pip install --upgrade pip \
     && pip install --no-cache-dir -r /app/requirements.txt
 
 # Copy the rest of the application code
-COPY ./backend /app
+COPY ./backend/ /app
 
 # Ensure the non-root user owns the app directory
 RUN chown -R ${APP_USER}:${APP_USER} /app

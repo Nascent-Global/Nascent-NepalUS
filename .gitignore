@@ -96,7 +96,6 @@ GoogleService-Info.plist
 # Docker
 docker-compose.override.yml
 **/Dockerfile.*
-docker-compose*.yml
 .env.compose
 docker-compose.override.yml
 
