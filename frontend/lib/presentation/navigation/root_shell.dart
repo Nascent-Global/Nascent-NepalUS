@@ -10,7 +10,9 @@ import '../theme/app_theme.dart';
 import '../widgets/aura_background.dart';
 
 class RootShell extends StatefulWidget {
-  const RootShell({super.key});
+  const RootShell({required this.onLogout, super.key});
+
+  final VoidCallback onLogout;
 
   @override
   State<RootShell> createState() => _RootShellState();
@@ -42,7 +44,17 @@ class _RootShellState extends State<RootShell> {
     return AuraBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: AppBar(title: Text(_titles[_index]), centerTitle: false),
+        appBar: AppBar(
+          title: Text(_titles[_index]),
+          centerTitle: false,
+          actions: [
+            IconButton(
+              onPressed: widget.onLogout,
+              tooltip: 'Logout',
+              icon: const Icon(Icons.logout_rounded),
+            ),
+          ],
+        ),
         body: SafeArea(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
