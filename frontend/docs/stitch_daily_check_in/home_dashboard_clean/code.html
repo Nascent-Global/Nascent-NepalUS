@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Atmosphere Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-secondary": "#e8f4ff",
+              "primary": "#0058bb",
+              "error-container": "#fb5151",
+              "on-secondary-container": "#004d6b",
+              "primary-dim": "#004ca4",
+              "inverse-primary": "#4b8eff",
+              "secondary-dim": "#005677",
+              "secondary-container": "#9dd9ff",
+              "primary-container": "#6c9fff",
+              "tertiary-container": "#6ffb85",
+              "surface-variant": "#d5dee8",
+              "inverse-on-surface": "#989da5",
+              "tertiary-fixed-dim": "#60ec79",
+              "surface-dim": "#ccd5e1",
+              "primary-fixed-dim": "#5191ff",
+              "on-tertiary-container": "#005d21",
+              "on-tertiary-fixed-variant": "#006826",
+              "secondary-fixed-dim": "#77cdff",
+              "on-secondary-fixed-variant": "#005778",
+              "error-dim": "#9f0519",
+              "on-primary": "#f0f2ff",
+              "on-tertiary-fixed": "#004818",
+              "on-surface-variant": "#565c63",
+              "surface-container-highest": "#d5dee8",
+              "primary-fixed": "#6c9fff",
+              "outline-variant": "#a8aeb5",
+              "on-error-container": "#570008",
+              "on-error": "#ffefee",
+              "on-primary-container": "#00214f",
+              "secondary": "#006287",
+              "inverse-surface": "#090f14",
+              "on-tertiary": "#cfffcd",
+              "on-primary-fixed": "#000000",
+              "surface-bright": "#f2f7ff",
+              "surface-tint": "#0058bb",
+              "on-secondary-fixed": "#003850",
+              "surface-container-low": "#ebf1fa",
+              "tertiary-fixed": "#6ffb85",
+              "on-background": "#2a2f35",
+              "error": "#b31b25",
+              "tertiary": "#006a26",
+              "on-surface": "#2a2f35",
+              "tertiary-dim": "#005d21",
+              "on-primary-fixed-variant": "#002a61",
+              "surface-container-lowest": "#ffffff",
+              "surface-container": "#e2e9f2",
+              "background": "#f2f7ff",
+              "secondary-fixed": "#9dd9ff",
+              "surface-container-high": "#dce3ed",
+              "surface": "#f2f7ff",
+              "outline": "#72777e"
+            },
+            fontFamily: {
+              "headline": ["Plus Jakarta Sans"],
+              "body": ["Plus Jakarta Sans"],
+              "label": ["Plus Jakarta Sans"]
+            },
+            borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+      body {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        background-color: #f2f7ff;
+        background-image: 
+          radial-gradient(at 0% 0%, rgba(108, 159, 255, 0.1) 0px, transparent 50%),
+          radial-gradient(at 100% 0%, rgba(111, 251, 133, 0.05) 0px, transparent 50%),
+          radial-gradient(at 100% 100%, rgba(108, 159, 255, 0.1) 0px, transparent 50%),
+          radial-gradient(at 0% 100%, rgba(111, 251, 133, 0.05) 0px, transparent 50%);
+      }
+      .glass-panel {
+        background: rgba(255, 255, 255, 0.4);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+      }
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      .burnout-ring {
+        transition: stroke-dashoffset 0.35s;
+        transform: rotate(-90deg);
+        transform-origin: 50% 50%;
+      }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="text-on-surface min-h-screen pb-32">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl shadow-[0_4px_30px_rgba(0,0,0,0.03)] border-none">
+<div class="flex justify-between items-center px-6 py-4 w-full">
+<div class="flex items-center gap-3">
+<div class="text-blue-700 dark:text-blue-500 font-extrabold tracking-tighter flex items-center gap-2">
+<span class="material-symbols-outlined text-2xl" data-icon="bubble_chart">bubble_chart</span>
+<span class="font-['Plus_Jakarta_Sans'] font-bold tracking-tight text-lg text-blue-600">Atmosphere</span>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="hover:opacity-70 transition-opacity active:scale-95 duration-200">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="notifications">notifications</span>
+</button>
+<div class="w-10 h-10 rounded-full overflow-hidden border-2 border-primary-container">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="Close-up portrait of a professional woman with a friendly expression, soft natural lighting, high-end photography style" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAEkVR5QCGDMEPIl6AhyjTp3_w1g2pIMZS_4QvrwbCOGKFzs98PKH9rvTQgcpD9sG5tPP-HhqwWhn4qcckJHB6s1XvuZN3TVGEAB9y0Y335tQ52gOc-8E1fjFv91qSHeTSLJzQ9aRuaqmrZPAMUK_w4l3xnGBowbg-cxsy8wrtas-yFgMZ3m8w37z0PxP4dU9DSF2ws80plseMcy4EsABVXvkdfMVy7_lHaGUgP-ugxHEuuW-ZYk0cQ5SgoSBrueRpLHoLgWNV6FA"/>
+</div>
+</div>
+</div>
+</header>
+<main class="pt-24 px-6 max-w-5xl mx-auto space-y-8">
+<!-- Hero Section: Circular Score & Character -->
+<section class="relative grid grid-cols-1 md:grid-cols-2 gap-8 items-center py-8">
+<div class="flex flex-col items-center justify-center relative">
+<!-- Circular Score Indicator -->
+<div class="relative w-64 h-64 md:w-80 md:h-80 flex items-center justify-center">
+<svg class="w-full h-full">
+<circle class="text-surface-container-high" cx="50%" cy="50%" fill="transparent" r="110" stroke="currentColor" stroke-width="12"></circle>
+<circle class="text-primary burnout-ring" cx="50%" cy="50%" fill="transparent" r="110" stroke="currentColor" stroke-dasharray="691" stroke-dashoffset="172" stroke-linecap="round" stroke-width="12"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center text-center">
+<span class="text-6xl md:text-7xl font-extrabold tracking-tighter text-on-surface">75</span>
+<span class="text-sm font-semibold text-primary uppercase tracking-widest">Score</span>
+</div>
+</div>
+<!-- Trend Line Component -->
+<div class="mt-6 flex items-center gap-3 bg-white/60 px-4 py-2 rounded-full border border-white/40 shadow-sm">
+<span class="text-tertiary font-bold flex items-center text-sm">
+<span class="material-symbols-outlined text-sm" data-icon="trending_up">trending_up</span>
+                        12%
+                    </span>
+<div class="w-24 h-6 flex items-end gap-0.5">
+<div class="w-2 bg-primary-container/20 h-2 rounded-t-sm"></div>
+<div class="w-2 bg-primary-container/30 h-3 rounded-t-sm"></div>
+<div class="w-2 bg-primary-container/40 h-4 rounded-t-sm"></div>
+<div class="w-2 bg-primary-container/60 h-5 rounded-t-sm"></div>
+<div class="w-2 bg-primary-container/80 h-3 rounded-t-sm"></div>
+<div class="w-2 bg-primary h-6 rounded-t-sm"></div>
+</div>
+<span class="text-xs text-on-surface-variant font-medium">Daily Trend</span>
+</div>
+</div>
+<div class="flex flex-col gap-6 items-start">
+<div class="relative group">
+<div class="absolute -inset-4 bg-primary-container/10 blur-2xl rounded-full"></div>
+<img alt="Mascot" class="w-48 h-48 object-contain relative z-10 drop-shadow-2xl" data-alt="A futuristic minimalist friendly robot character, sleek white porcelain texture, glowing blue eyes, clean studio lighting, high fidelity 3D render" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBiaDyORO0gKHPcGGbNIcLjCaOMZMdg2GvmcJp69OXkdxoM-ZOC-iUm8F5YOFq3yEY4iD1vL5Gmx6O03uoTZzqRGd6Sr-ZLt5fROR_C09ilWI8KvCdbZHwPgPto48agpbWxjtJ8s1_ot_CqkhMj9OOhsMAeSrII3fnGIsRYnrFG6JdMRNkJ9K1QyOj5ymAptaWljMVND3Sji0XLLpcopupcvpszRFQkAWib6NRK-7sA3ncCoq5m1Lr6PKhFl062kazRfMbDed2Rsg"/>
+</div>
+<div class="space-y-2">
+<h1 class="text-3xl md:text-4xl font-extrabold tracking-tight text-on-surface">Great Progress, Alex.</h1>
+<p class="text-on-surface-variant text-lg">Your focus levels are optimal. Ready for a recovery session?</p>
+</div>
+<button class="group relative px-8 py-4 bg-primary text-on-primary rounded-full font-bold text-lg shadow-[0_8px_32px_rgba(0,88,187,0.25)] hover:shadow-[0_12px_40px_rgba(0,88,187,0.35)] active:scale-95 transition-all duration-300">
+<span class="relative z-10 flex items-center gap-2">
+                        Start Recovery
+                        <span class="material-symbols-outlined" data-icon="bolt" data-weight="fill" style="font-variation-settings: 'FILL' 1;">bolt</span>
+</span>
+<div class="absolute inset-0 bg-white/20 rounded-full scale-0 group-hover:scale-100 transition-transform duration-500 origin-center"></div>
+</button>
+</div>
+</section>
+<!-- Metrics Bento Grid -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- Sleep Quality Card -->
+<div class="glass-panel p-6 rounded-lg flex flex-col justify-between h-48 relative overflow-hidden">
+<div class="flex justify-between items-start relative z-10">
+<div>
+<p class="text-on-surface-variant text-sm font-semibold uppercase tracking-wider">Sleep Quality</p>
+<h3 class="text-2xl font-bold mt-1">8h 12m</h3>
+</div>
+<div class="p-2 bg-tertiary-container/30 text-tertiary rounded-full">
+<span class="material-symbols-outlined" data-icon="bedtime">bedtime</span>
+</div>
+</div>
+<div class="flex items-center gap-2 relative z-10">
+<span class="w-2 h-2 rounded-full bg-tertiary"></span>
+<span class="text-sm font-medium text-on-surface-variant">Deep Restorative State</span>
+</div>
+<div class="absolute bottom-0 right-0 opacity-10">
+<span class="material-symbols-outlined text-9xl translate-x-1/4 translate-y-1/4" data-icon="waves">waves</span>
+</div>
+</div>
+<!-- Tasks Logged Card -->
+<div class="glass-panel p-6 rounded-lg flex flex-col justify-between h-48 relative overflow-hidden">
+<div class="flex justify-between items-start relative z-10">
+<div>
+<p class="text-on-surface-variant text-sm font-semibold uppercase tracking-wider">Tasks Logged</p>
+<h3 class="text-2xl font-bold mt-1">14 / 20</h3>
+</div>
+<div class="p-2 bg-secondary-container/30 text-secondary rounded-full">
+<span class="material-symbols-outlined" data-icon="task_alt">task_alt</span>
+</div>
+</div>
+<div class="flex items-center gap-2 relative z-10">
+<span class="w-2 h-2 rounded-full bg-secondary-fixed"></span>
+<span class="text-sm font-medium text-on-surface-variant">Ahead of schedule</span>
+</div>
+<div class="absolute bottom-4 right-6 w-16 h-16 opacity-20">
+<svg class="w-full h-full" viewbox="0 0 36 36">
+<path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#0058bb" stroke-dasharray="70, 100" stroke-width="4"></path>
+</svg>
+</div>
+</div>
+<!-- Status Card -->
+<div class="bg-surface-container-lowest p-6 rounded-lg shadow-sm flex flex-col justify-between h-48">
+<div class="flex justify-between items-start">
+<div>
+<p class="text-on-surface-variant text-sm font-semibold uppercase tracking-wider">Atmosphere</p>
+<h3 class="text-2xl font-bold mt-1">Stable</h3>
+</div>
+<div class="p-2 bg-tertiary-fixed/20 text-tertiary-fixed-dim rounded-full">
+<span class="material-symbols-outlined" data-icon="cloud_done">cloud_done</span>
+</div>
+</div>
+<div class="space-y-3">
+<div class="flex justify-between items-center text-xs font-bold text-on-surface-variant">
+<span>VITALITY</span>
+<span class="text-tertiary">OPTIMAL</span>
+</div>
+<div class="h-1.5 w-full bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-tertiary-fixed w-[85%] rounded-full"></div>
+</div>
+</div>
+</div>
+</section>
+<!-- Detailed Insights Section -->
+<section class="space-y-4">
+<div class="flex justify-between items-end">
+<h2 class="text-xl font-bold tracking-tight">Focus Distribution</h2>
+<button class="text-sm font-semibold text-primary hover:underline">View History</button>
+</div>
+<div class="bg-surface-container-lowest rounded-lg p-8 grid grid-cols-2 md:grid-cols-4 gap-8">
+<div class="text-center space-y-2">
+<div class="text-3xl font-bold text-on-surface">4.2h</div>
+<div class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Deep Work</div>
+<div class="h-1 bg-primary rounded-full mx-auto w-12"></div>
+</div>
+<div class="text-center space-y-2">
+<div class="text-3xl font-bold text-on-surface">1.8h</div>
+<div class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Social</div>
+<div class="h-1 bg-secondary-container rounded-full mx-auto w-12"></div>
+</div>
+<div class="text-center space-y-2">
+<div class="text-3xl font-bold text-on-surface">0.5h</div>
+<div class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Rest</div>
+<div class="h-1 bg-tertiary-fixed rounded-full mx-auto w-12"></div>
+</div>
+<div class="text-center space-y-2">
+<div class="text-3xl font-bold text-on-surface">2.1h</div>
+<div class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Learning</div>
+<div class="h-1 bg-primary-container rounded-full mx-auto w-12"></div>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] md:w-auto md:px-12 rounded-full border border-white/20 bg-white/40 dark:bg-slate-900/40 backdrop-blur-2xl z-50 flex justify-around items-center py-2 px-4 shadow-[0_8px_32px_rgba(0,88,187,0.12)]">
+<a class="bg-blue-500/10 dark:bg-blue-400/20 text-blue-600 dark:text-blue-300 rounded-full p-3 active:scale-90 duration-300 ease-out transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="home_max" data-weight="fill" style="font-variation-settings: 'FILL' 1;">home_max</span>
+</a>
+<a class="text-slate-400 dark:text-slate-500 p-3 hover:bg-white/50 dark:hover:bg-slate-800/50 rounded-full transition-all active:scale-90 duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="explore">explore</span>
+</a>
+<a class="text-slate-400 dark:text-slate-500 p-3 hover:bg-white/50 dark:hover:bg-slate-800/50 rounded-full transition-all active:scale-90 duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="auto_awesome">auto_awesome</span>
+</a>
+<a class="text-slate-400 dark:text-slate-500 p-3 hover:bg-white/50 dark:hover:bg-slate-800/50 rounded-full transition-all active:scale-90 duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+</a>
+</nav>
+<!-- Contextual FAB - Only for Home Dashboard -->
+<button class="fixed bottom-24 right-8 w-14 h-14 bg-primary text-on-primary rounded-full shadow-lg flex items-center justify-center active:scale-90 transition-transform duration-200 z-40 md:hidden">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+</button>
+</body></html>

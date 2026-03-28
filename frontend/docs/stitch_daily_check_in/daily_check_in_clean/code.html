@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Atmosphere - Daily Check-In</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-secondary": "#e8f4ff",
+              "primary": "#0058bb",
+              "error-container": "#fb5151",
+              "on-secondary-container": "#004d6b",
+              "primary-dim": "#004ca4",
+              "inverse-primary": "#4b8eff",
+              "secondary-dim": "#005677",
+              "secondary-container": "#9dd9ff",
+              "primary-container": "#6c9fff",
+              "tertiary-container": "#6ffb85",
+              "surface-variant": "#d5dee8",
+              "inverse-on-surface": "#989da5",
+              "tertiary-fixed-dim": "#60ec79",
+              "surface-dim": "#ccd5e1",
+              "primary-fixed-dim": "#5191ff",
+              "on-tertiary-container": "#005d21",
+              "on-tertiary-fixed-variant": "#006826",
+              "secondary-fixed-dim": "#77cdff",
+              "on-secondary-fixed-variant": "#005778",
+              "error-dim": "#9f0519",
+              "on-primary": "#f0f2ff",
+              "on-tertiary-fixed": "#004818",
+              "on-surface-variant": "#565c63",
+              "surface-container-highest": "#d5dee8",
+              "primary-fixed": "#6c9fff",
+              "outline-variant": "#a8aeb5",
+              "on-error-container": "#570008",
+              "on-error": "#ffefee",
+              "on-primary-container": "#00214f",
+              "secondary": "#006287",
+              "inverse-surface": "#090f14",
+              "on-tertiary": "#cfffcd",
+              "on-primary-fixed": "#000000",
+              "surface-bright": "#f2f7ff",
+              "surface-tint": "#0058bb",
+              "on-secondary-fixed": "#003850",
+              "surface-container-low": "#ebf1fa",
+              "tertiary-fixed": "#6ffb85",
+              "on-background": "#2a2f35",
+              "error": "#b31b25",
+              "tertiary": "#006a26",
+              "on-surface": "#2a2f35",
+              "tertiary-dim": "#005d21",
+              "on-primary-fixed-variant": "#002a61",
+              "surface-container-lowest": "#ffffff",
+              "surface-container": "#e2e9f2",
+              "background": "#f2f7ff",
+              "secondary-fixed": "#9dd9ff",
+              "surface-container-high": "#dce3ed",
+              "surface": "#f2f7ff",
+              "outline": "#72777e"
+            },
+            fontFamily: {
+              "headline": ["Plus Jakarta Sans"],
+              "body": ["Plus Jakarta Sans"],
+              "label": ["Plus Jakarta Sans"]
+            },
+            borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+        .aura-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: radial-gradient(circle at 10% 20%, rgba(108, 159, 255, 0.15) 0%, transparent 40%),
+                        radial-gradient(circle at 90% 80%, rgba(111, 251, 133, 0.1) 0%, transparent 40%),
+                        #f2f7ff;
+        }
+        input[type='range'] {
+            -webkit-appearance: none;
+            appearance: none;
+            background: transparent;
+            cursor: pointer;
+        }
+        input[type='range']::-webkit-slider-runnable-track {
+            background: #ebf1fa;
+            height: 0.5rem;
+            border-radius: 9999px;
+        }
+        input[type='range']::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            margin-top: -8px;
+            background-color: #0058bb;
+            height: 1.5rem;
+            width: 1.5rem;
+            border-radius: 50%;
+            border: 4px solid white;
+            box-shadow: 0 4px 12px rgba(0, 88, 187, 0.2);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface font-body text-on-surface min-h-screen pb-32">
+<div class="aura-bg"></div>
+<!-- TopAppBar -->
+<header class="bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl fixed top-0 w-full z-50 shadow-[0_4px_30px_rgba(0,0,0,0.03)] border-none">
+<div class="flex justify-between items-center px-6 py-4 w-full max-w-5xl mx-auto">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-blue-700 dark:text-blue-500 text-2xl" data-icon="bubble_chart">bubble_chart</span>
+<h1 class="font-['Plus_Jakarta_Sans'] font-extrabold tracking-tighter text-blue-700 dark:text-blue-500 text-xl">Atmosphere</h1>
+</div>
+<div class="w-10 h-10 rounded-full overflow-hidden border-2 border-primary-container">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="Close-up portrait of a professional woman with a friendly expression in soft, natural morning light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD8nZT90G0AAA7OjtZBHCHtMWutNu9GPnQ0V7dwKN71n2IgBx-QKP32WL_gNCJENSAR6qYTuGVMqW8R5Pw_DQjCYqNV5Ts_MKaeS1sJmOY4QaMaT2d1hkDzN0d-PzdDaYR2oOiQJbk3pEmQ2_h44cKrOGv8LpXOvHvOHEs7ne2Pfvm5DR3IqFn2Yio1klCCRf1nRQtoDJ4BJKvSvP2JdUVs6M51DMJSVe_dCVKGxCge6zA1hLgRZ4D7xiDnr8qdtkngv_vuM7B8hA"/>
+</div>
+</div>
+</header>
+<main class="pt-28 px-6 max-w-2xl mx-auto">
+<!-- Hero Section -->
+<section class="mb-12 text-center md:text-left">
+<h2 class="text-4xl md:text-5xl font-extrabold tracking-tight text-on-surface mb-3">Daily Check-In</h2>
+<p class="text-on-surface-variant text-lg font-medium">Just 10 seconds to check in</p>
+</section>
+<!-- Main Form Bento Layout -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<!-- Mood Selection - Large Span -->
+<div class="md:col-span-2 glass-panel p-8 rounded-lg">
+<h3 class="text-sm font-bold tracking-widest text-primary uppercase mb-6">How are you feeling?</h3>
+<div class="flex justify-between items-center gap-2">
+<button class="flex flex-col items-center gap-3 group transition-transform active:scale-90 duration-200">
+<div class="w-16 h-16 rounded-2xl bg-orange-100 flex items-center justify-center text-orange-500 group-hover:shadow-lg group-hover:shadow-orange-200/50 transition-all">
+<span class="material-symbols-outlined text-4xl" data-icon="sentiment_very_dissatisfied">sentiment_very_dissatisfied</span>
+</div>
+<span class="text-xs font-bold text-on-surface-variant">Gloomy</span>
+</button>
+<button class="flex flex-col items-center gap-3 group transition-transform active:scale-90 duration-200">
+<div class="w-16 h-16 rounded-2xl bg-blue-100 flex items-center justify-center text-blue-500 group-hover:shadow-lg group-hover:shadow-blue-200/50 transition-all">
+<span class="material-symbols-outlined text-4xl" data-icon="sentiment_neutral">sentiment_neutral</span>
+</div>
+<span class="text-xs font-bold text-on-surface-variant">Calm</span>
+</button>
+<button class="flex flex-col items-center gap-3 group transition-transform active:scale-90 duration-200">
+<div class="w-16 h-16 rounded-2xl bg-primary-container/20 flex items-center justify-center text-primary group-hover:shadow-lg group-hover:shadow-primary/20 transition-all border-2 border-primary">
+<span class="material-symbols-outlined text-4xl" data-icon="sentiment_satisfied" style="font-variation-settings: 'FILL' 1;">sentiment_satisfied</span>
+</div>
+<span class="text-xs font-bold text-primary">Good</span>
+</button>
+<button class="flex flex-col items-center gap-3 group transition-transform active:scale-90 duration-200">
+<div class="w-16 h-16 rounded-2xl bg-tertiary-container/20 flex items-center justify-center text-tertiary group-hover:shadow-lg group-hover:shadow-tertiary/20 transition-all">
+<span class="material-symbols-outlined text-4xl" data-icon="sentiment_very_satisfied">sentiment_very_satisfied</span>
+</div>
+<span class="text-xs font-bold text-on-surface-variant">Amazing</span>
+</button>
+</div>
+</div>
+<!-- Sleep Slider -->
+<div class="bg-surface-container-lowest p-8 rounded-lg shadow-[0_8px_30px_rgba(0,88,187,0.04)]">
+<div class="flex justify-between items-center mb-6">
+<h3 class="text-sm font-bold tracking-widest text-primary uppercase">Sleep</h3>
+<span class="text-2xl font-extrabold text-on-surface">8<span class="text-sm font-medium text-on-surface-variant ml-1">hrs</span></span>
+</div>
+<input class="w-full" max="12" min="0" type="range" value="8"/>
+<div class="flex justify-between mt-4 text-[10px] font-bold text-outline uppercase tracking-tighter">
+<span>Restless</span>
+<span>Deep</span>
+</div>
+</div>
+<!-- Work Slider -->
+<div class="bg-surface-container-lowest p-8 rounded-lg shadow-[0_8px_30px_rgba(0,88,187,0.04)]">
+<div class="flex justify-between items-center mb-6">
+<h3 class="text-sm font-bold tracking-widest text-primary uppercase">Work</h3>
+<span class="text-2xl font-extrabold text-on-surface">6<span class="text-sm font-medium text-on-surface-variant ml-1">hrs</span></span>
+</div>
+<input class="w-full" max="14" min="0" type="range" value="6"/>
+<div class="flex justify-between mt-4 text-[10px] font-bold text-outline uppercase tracking-tighter">
+<span>Light</span>
+<span>Focus</span>
+</div>
+</div>
+<!-- Toggle Interaction -->
+<div class="md:col-span-2 glass-panel p-8 rounded-lg flex items-center justify-between">
+<div>
+<h3 class="text-lg font-bold text-on-surface">Exercise today?</h3>
+<p class="text-sm text-on-surface-variant">Any physical activity over 20 mins</p>
+</div>
+<div class="flex bg-surface-container rounded-full p-1.5 w-48 relative">
+<button class="flex-1 py-3 text-sm font-extrabold rounded-full transition-all duration-300 text-on-surface-variant">
+                        No
+                    </button>
+<button class="flex-1 py-3 text-sm font-extrabold rounded-full transition-all duration-300 bg-primary text-white shadow-lg shadow-primary/25">
+                        Yes
+                    </button>
+</div>
+</div>
+<!-- Call to Action -->
+<div class="md:col-span-2 mt-8">
+<button class="w-full bg-primary hover:bg-primary-dim text-white font-bold py-6 rounded-lg text-lg transition-all active:scale-[0.98] shadow-xl shadow-primary/20 flex items-center justify-center gap-3">
+                    Complete Check-In
+                    <span class="material-symbols-outlined" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] md:max-w-md rounded-full bg-white/40 dark:bg-slate-900/40 backdrop-blur-2xl border border-white/20 shadow-[0_8px_32px_rgba(0,88,187,0.12)] z-50 py-2 px-4 flex justify-around items-center">
+<a class="text-slate-400 dark:text-slate-500 p-3 hover:bg-white/50 dark:hover:bg-slate-800/50 rounded-full transition-all active:scale-90 duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="home_max">home_max</span>
+</a>
+<a class="text-slate-400 dark:text-slate-500 p-3 hover:bg-white/50 dark:hover:bg-slate-800/50 rounded-full transition-all active:scale-90 duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="explore">explore</span>
+</a>
+<a class="bg-blue-500/10 dark:bg-blue-400/20 text-blue-600 dark:text-blue-300 rounded-full p-3 transition-all active:scale-90 duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="auto_awesome" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+</a>
+<a class="text-slate-400 dark:text-slate-500 p-3 hover:bg-white/50 dark:hover:bg-slate-800/50 rounded-full transition-all active:scale-90 duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+</a>
+</nav>
+</body></html>

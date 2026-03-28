@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Atmosphere | Task &amp; Pressure</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-secondary": "#e8f4ff",
+              "primary": "#0058bb",
+              "error-container": "#fb5151",
+              "on-secondary-container": "#004d6b",
+              "primary-dim": "#004ca4",
+              "inverse-primary": "#4b8eff",
+              "secondary-dim": "#005677",
+              "secondary-container": "#9dd9ff",
+              "primary-container": "#6c9fff",
+              "tertiary-container": "#6ffb85",
+              "surface-variant": "#d5dee8",
+              "inverse-on-surface": "#989da5",
+              "tertiary-fixed-dim": "#60ec79",
+              "surface-dim": "#ccd5e1",
+              "primary-fixed-dim": "#5191ff",
+              "on-tertiary-container": "#005d21",
+              "on-tertiary-fixed-variant": "#006826",
+              "secondary-fixed-dim": "#77cdff",
+              "on-secondary-fixed-variant": "#005778",
+              "error-dim": "#9f0519",
+              "on-primary": "#f0f2ff",
+              "on-tertiary-fixed": "#004818",
+              "on-surface-variant": "#565c63",
+              "surface-container-highest": "#d5dee8",
+              "primary-fixed": "#6c9fff",
+              "outline-variant": "#a8aeb5",
+              "on-error-container": "#570008",
+              "on-error": "#ffefee",
+              "on-primary-container": "#00214f",
+              "secondary": "#006287",
+              "inverse-surface": "#090f14",
+              "on-tertiary": "#cfffcd",
+              "on-primary-fixed": "#000000",
+              "surface-bright": "#f2f7ff",
+              "surface-tint": "#0058bb",
+              "on-secondary-fixed": "#003850",
+              "surface-container-low": "#ebf1fa",
+              "tertiary-fixed": "#6ffb85",
+              "on-background": "#2a2f35",
+              "error": "#b31b25",
+              "tertiary": "#006a26",
+              "on-surface": "#2a2f35",
+              "tertiary-dim": "#005d21",
+              "on-primary-fixed-variant": "#002a61",
+              "surface-container-lowest": "#ffffff",
+              "surface-container": "#e2e9f2",
+              "background": "#f2f7ff",
+              "secondary-fixed": "#9dd9ff",
+              "surface-container-high": "#dce3ed",
+              "surface": "#f2f7ff",
+              "outline": "#72777e"
+            },
+            fontFamily: {
+              "headline": ["Plus Jakarta Sans"],
+              "body": ["Plus Jakarta Sans"],
+              "label": ["Plus Jakarta Sans"]
+            },
+            borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        .pressure-gradient {
+            background: conic-gradient(from 180deg at 50% 50%, #0058bb 0deg, #6c9fff 120deg, #fb5151 240deg, #0058bb 360deg);
+        }
+        .aura-blob {
+            position: absolute;
+            filter: blur(80px);
+            z-index: -1;
+            opacity: 0.4;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface min-h-screen pb-32">
+<!-- Atmospheric Background Elements -->
+<div class="fixed inset-0 overflow-hidden pointer-events-none">
+<div class="aura-blob bg-primary-container w-[500px] h-[500px] -top-48 -left-24 rounded-full"></div>
+<div class="aura-blob bg-tertiary-fixed w-[400px] h-[400px] top-1/2 -right-24 rounded-full"></div>
+<div class="aura-blob bg-secondary-fixed w-[600px] h-[600px] -bottom-48 left-1/4 rounded-full"></div>
+</div>
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl shadow-[0_4px_30px_rgba(0,0,0,0.03)] border-none">
+<div class="flex justify-between items-center px-6 py-4 w-full">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-blue-700 dark:text-blue-500 text-2xl">bubble_chart</span>
+<h1 class="text-blue-700 dark:text-blue-500 font-extrabold tracking-tighter text-lg font-['Plus_Jakarta_Sans']">Atmosphere</h1>
+</div>
+<div class="flex items-center gap-4">
+<button class="w-10 h-10 rounded-full flex items-center justify-center hover:opacity-70 transition-opacity active:scale-95 duration-200">
+<span class="material-symbols-outlined text-slate-400">notifications</span>
+</button>
+<div class="w-10 h-10 rounded-full overflow-hidden border-2 border-primary-container">
+<img alt="User Profile" data-alt="close-up portrait of a professional woman with a kind smile and modern glasses in a bright office environment" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDvTTfDhsDH8bWI_pmiD_xbxhF2xjVXFQqCMbV0PeplM-dp08_JrioJ7x-qrNUCiz4XZ0Pd53FjSJbFdkuYB2HHC2pJj5vCql7F03lTyWfEWFZAxmMSrumN_AR86PH8E1ypVckaVBZrATK84LSt31vWpbRRyYUU96kK09IG93JJh3UdemlESRu_wP5zSvij4WF7x_Z2KYFz9Hu4gQ8iM4TxoH9mhfVvHjvstedsqPeTXW5PwkBmtst8riJ3vECV54xf6CwMe6VnBw"/>
+</div>
+</div>
+</div>
+</header>
+<main class="pt-24 px-6 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
+<!-- Pressure Radar Section (Left/Top) -->
+<section class="lg:col-span-5 flex flex-col items-center justify-center">
+<div class="w-full glass-panel rounded-lg p-8 shadow-sm border border-white/40 mb-6">
+<div class="flex justify-between items-center mb-8">
+<div>
+<h2 class="text-2xl font-bold tracking-tight text-on-surface">Pressure Radar</h2>
+<p class="text-on-surface-variant text-sm">System vitality and workload</p>
+</div>
+<span class="px-3 py-1 bg-primary-container/20 text-primary text-xs font-bold rounded-full">OPTIMAL</span>
+</div>
+<!-- Radar Gauge -->
+<div class="relative w-64 h-64 mx-auto flex items-center justify-center">
+<div class="absolute inset-0 rounded-full border-[12px] border-surface-container opacity-50"></div>
+<div class="absolute inset-0 rounded-full border-[12px] border-primary border-t-transparent border-r-transparent -rotate-45"></div>
+<div class="text-center z-10">
+<span class="block text-5xl font-extrabold text-primary tracking-tighter">74</span>
+<span class="text-xs font-bold text-on-surface-variant uppercase tracking-widest leading-none">Psi Level</span>
+</div>
+<!-- Decorative Accents -->
+<div class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-2">
+<div class="w-4 h-4 rounded-full bg-primary border-4 border-white shadow-sm"></div>
+</div>
+</div>
+<div class="mt-10 grid grid-cols-2 gap-4">
+<div class="p-4 rounded-2xl bg-surface-container-low">
+<span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider block mb-1">Response</span>
+<span class="text-lg font-bold text-on-surface">14ms</span>
+</div>
+<div class="p-4 rounded-2xl bg-surface-container-low">
+<span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider block mb-1">Queue</span>
+<span class="text-lg font-bold text-on-surface">Low</span>
+</div>
+</div>
+</div>
+<!-- Asymmetric Action Card -->
+<div class="w-full bg-primary p-6 rounded-lg relative overflow-hidden shadow-lg shadow-primary/20">
+<div class="relative z-10">
+<h3 class="text-white font-bold text-xl mb-2">Automate Tasks</h3>
+<p class="text-primary-container text-sm mb-4 leading-relaxed">Let the Ethereal Engine handle your repetitive workflows.</p>
+<button class="bg-white text-primary px-6 py-2 rounded-full font-bold text-sm hover:opacity-90 transition-all active:scale-95">Enable Now</button>
+</div>
+<span class="material-symbols-outlined absolute -right-4 -bottom-4 text-9xl text-white/10 select-none">auto_awesome</span>
+</div>
+</section>
+<!-- Task List Section (Right/Bottom) -->
+<section class="lg:col-span-7">
+<div class="flex items-center justify-between mb-6">
+<h2 class="text-2xl font-bold tracking-tight text-on-surface">Active Tasks</h2>
+<div class="flex gap-2">
+<button class="p-2 rounded-full bg-white border border-outline-variant/20 text-on-surface-variant hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined text-lg">filter_list</span>
+</button>
+<button class="flex items-center gap-2 bg-primary text-white px-5 py-2.5 rounded-full font-bold text-sm shadow-md hover:shadow-lg transition-all active:scale-95">
+<span class="material-symbols-outlined text-lg">add</span>
+                        Add Task
+                    </button>
+</div>
+</div>
+<div class="space-y-4">
+<!-- Urgency Task Card -->
+<div class="bg-white border-l-4 border-l-error-container rounded-lg p-5 shadow-[0_8px_20px_rgba(0,0,0,0.04)] border border-outline-variant/10 flex items-center justify-between group">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-2xl bg-error-container/10 flex items-center justify-center text-error-container">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">priority_high</span>
+</div>
+<div>
+<h4 class="font-bold text-on-surface group-hover:text-primary transition-colors">Server Maintenance Protocol</h4>
+<div class="flex items-center gap-3 mt-1">
+<span class="text-xs font-semibold text-error-container bg-error-container/5 px-2 py-0.5 rounded">High Urgency</span>
+<span class="text-xs text-on-surface-variant">Due in 2h</span>
+</div>
+</div>
+</div>
+<button class="text-outline hover:text-primary transition-colors">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+<!-- Standard Task Card 1 -->
+<div class="bg-white border border-outline-variant/20 rounded-lg p-5 shadow-[0_4px_12px_rgba(0,0,0,0.02)] flex items-center justify-between group hover:border-primary-container/50 transition-all">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-2xl bg-surface-container flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">analytics</span>
+</div>
+<div>
+<h4 class="font-bold text-on-surface">Data Sync Visualization</h4>
+<div class="flex items-center gap-3 mt-1">
+<span class="text-xs font-semibold text-primary bg-primary/5 px-2 py-0.5 rounded">Internal</span>
+<span class="text-xs text-on-surface-variant">Assigned to Me</span>
+</div>
+</div>
+</div>
+<button class="text-outline hover:text-primary transition-colors">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+<!-- Standard Task Card 2 -->
+<div class="bg-white border border-outline-variant/20 rounded-lg p-5 shadow-[0_4px_12px_rgba(0,0,0,0.02)] flex items-center justify-between group hover:border-primary-container/50 transition-all">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-2xl bg-surface-container flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined">cloud_done</span>
+</div>
+<div>
+<h4 class="font-bold text-on-surface">Backup Cloud Infrastructure</h4>
+<div class="flex items-center gap-3 mt-1">
+<span class="text-xs font-semibold text-secondary bg-secondary/5 px-2 py-0.5 rounded">Scheduled</span>
+<span class="text-xs text-on-surface-variant">Tomorrow, 08:00 AM</span>
+</div>
+</div>
+</div>
+<button class="text-outline hover:text-primary transition-colors">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+<!-- Task with Progress -->
+<div class="bg-white border border-outline-variant/20 rounded-lg p-6 shadow-[0_4px_12px_rgba(0,0,0,0.02)]">
+<div class="flex justify-between items-start mb-4">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-2xl bg-tertiary-container/20 flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined">neurology</span>
+</div>
+<div>
+<h4 class="font-bold text-on-surface">Neural Model Training</h4>
+<span class="text-xs text-on-surface-variant">Processing dataset #042</span>
+</div>
+</div>
+<span class="text-sm font-bold text-primary">68%</span>
+</div>
+<div class="w-full h-2 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full" style="width: 68%"></div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] rounded-full border border-white/20 bg-white/40 dark:bg-slate-900/40 backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,88,187,0.12)] z-50 flex justify-around items-center py-2 px-4">
+<!-- Home (Inactive) -->
+<button class="text-slate-400 dark:text-slate-500 p-3 hover:bg-white/50 dark:hover:bg-slate-800/50 rounded-full transition-all active:scale-90 duration-300 ease-out">
+<span class="material-symbols-outlined">home_max</span>
+</button>
+<!-- Explore (Inactive) -->
+<button class="text-slate-400 dark:text-slate-500 p-3 hover:bg-white/50 dark:hover:bg-slate-800/50 rounded-full transition-all active:scale-90 duration-300 ease-out">
+<span class="material-symbols-outlined">explore</span>
+</button>
+<!-- Tasks (Active) -->
+<button class="bg-blue-500/10 dark:bg-blue-400/20 text-blue-600 dark:text-blue-300 rounded-full p-3 active:scale-90 duration-300 ease-out">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+</button>
+<!-- Profile (Inactive) -->
+<button class="text-slate-400 dark:text-slate-500 p-3 hover:bg-white/50 dark:hover:bg-slate-800/50 rounded-full transition-all active:scale-90 duration-300 ease-out">
+<span class="material-symbols-outlined">person</span>
+</button>
+</nav>
+<!-- Floating Action Button (Suppressed on this task-focused screen per mandate, but Add Task button is present in main content) -->
+</body></html>
