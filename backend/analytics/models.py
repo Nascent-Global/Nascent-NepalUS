@@ -81,4 +81,4 @@ class ScoreLog(models.Model):
     synced = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"ScoreLog({self.change_amount} for {self.score_id})"
+        return f"ScoreLog({self.change_amount} for {self.id})"
