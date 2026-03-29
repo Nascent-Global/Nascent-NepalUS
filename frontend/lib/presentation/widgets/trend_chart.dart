@@ -47,13 +47,13 @@ class TrendChart extends StatelessWidget {
           lineBarsData: [
             LineChartBarData(
               spots: spots,
-              color: AppTheme.cobalt,
+              color: AppTheme.primary,
               barWidth: 3,
               isCurved: true,
               dotData: const FlDotData(show: false),
               belowBarData: BarAreaData(
                 show: true,
-                color: AppTheme.cobalt.withValues(alpha: 0.15),
+                color: AppTheme.secondary.withValues(alpha: 0.28),
               ),
             ),
           ],

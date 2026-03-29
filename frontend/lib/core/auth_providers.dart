@@ -99,10 +99,10 @@ class AuthController extends Notifier<AuthState> {
       await _storage.save(session);
     } on AuthError catch (error) {
       state = state.copyWith(isLoading: false, errorMessage: error.message);
-    } catch (_) {
+    } catch (error) {
       state = state.copyWith(
         isLoading: false,
-        errorMessage: 'Unable to sign in. Please try again.',
+        errorMessage: _unexpectedAuthMessage(error),
       );
     }
   }
@@ -129,10 +129,10 @@ class AuthController extends Notifier<AuthState> {
       await _storage.save(session);
     } on AuthError catch (error) {
       state = state.copyWith(isLoading: false, errorMessage: error.message);
-    } catch (_) {
+    } catch (error) {
       state = state.copyWith(
         isLoading: false,
-        errorMessage: 'Unable to create account. Please try again.',
+        errorMessage: _unexpectedAuthMessage(error),
       );
     }
   }
@@ -156,5 +156,15 @@ class AuthController extends Notifier<AuthState> {
       clearError: true,
       isLoading: false,
     );
+  }
+
+  String _unexpectedAuthMessage(Object error) {
+    final text = error.toString().toLowerCase();
+    if (text.contains('socket') ||
+        text.contains('connection refused') ||
+        text.contains('failed host lookup')) {
+      return 'Cannot reach backend. If using a physical device, run: adb reverse tcp:3000 tcp:3000';
+    }
+    return 'Unable to authenticate. Please try again.';
   }
 }

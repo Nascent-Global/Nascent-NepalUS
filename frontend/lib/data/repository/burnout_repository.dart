@@ -29,6 +29,7 @@ abstract class BurnoutRepository {
   Future<String> startPomodoro({
     required DateTime startTime,
     required int durationMinutes,
+    String? taskLabel,
   });
 
   Future<void> endPomodoro({
@@ -36,6 +37,8 @@ abstract class BurnoutRepository {
     required DateTime endTime,
     required bool completed,
   });
+
+  Future<PomodoroSession?> getActivePomodoroSession();
 
   Future<String> startBreathing({
     required DateTime startedAt,

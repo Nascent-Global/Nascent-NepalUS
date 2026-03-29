@@ -19,6 +19,7 @@ class DashboardScreen extends ConsumerWidget {
       data: (snapshot) {
         final score = snapshot.latestScore?.score ?? 0;
         final classification = snapshot.latestScore?.classification ?? 'low';
+        final classificationColor = _classificationColor(classification);
 
         return RefreshIndicator(
           onRefresh: () async {
@@ -26,39 +27,93 @@ class DashboardScreen extends ConsumerWidget {
           },
           child: ListView(
             physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.only(bottom: 20),
             children: [
               GlassCard(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                variant: GlassCardVariant.primary,
+                child: Stack(
+                  clipBehavior: Clip.none,
                   children: [
-                    Text(
-                      'Current Burnout Score',
-                      style: Theme.of(context).textTheme.titleMedium,
+                    Positioned(
+                      top: -6,
+                      right: -4,
+                      child: _HeroAccent(icon: Icons.bolt_rounded),
                     ),
-                    const SizedBox(height: 8),
-                    Row(
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          '$score',
-                          style: Theme.of(context).textTheme.displayMedium
-                              ?.copyWith(
-                                color: AppTheme.navy,
-                                fontWeight: FontWeight.w800,
-                              ),
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.insights_rounded,
+                              color: Colors.white,
+                              size: 22,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Current Burnout Score',
+                              style: Theme.of(context).textTheme.titleMedium
+                                  ?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: 12),
-                        Chip(
-                          label: Text(classification.toUpperCase()),
-                          backgroundColor: _classificationColor(classification),
-                        ),
-                        const Spacer(),
-                        Text(
-                          snapshot.direction,
-                          style: Theme.of(context).textTheme.headlineSmall
-                              ?.copyWith(
-                                color: AppTheme.cobalt,
-                                fontWeight: FontWeight.w800,
+                        const SizedBox(height: 8),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              '$score',
+                              style: Theme.of(context).textTheme.displayMedium
+                                  ?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                            ),
+                            const Spacer(),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 7,
                               ),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.2),
+                                borderRadius: BorderRadius.circular(999),
+                                border: Border.all(
+                                  color: Colors.white.withValues(alpha: 0.45),
+                                ),
+                              ),
+                              child: Text(
+                                snapshot.direction,
+                                style: Theme.of(context).textTheme.titleSmall
+                                    ?.copyWith(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: classificationColor.withValues(alpha: 0.9),
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: Text(
+                            classification.toUpperCase(),
+                            style: Theme.of(context).textTheme.labelLarge
+                                ?.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                          ),
                         ),
                       ],
                     ),
@@ -67,12 +122,22 @@ class DashboardScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 12),
               GlassCard(
+                variant: GlassCardVariant.secondary,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    _SectionTitle(
+                      icon: Icons.timeline_rounded,
+                      label: 'Burnout Trend',
+                      tint: AppTheme.secondaryDark,
+                    ),
+                    const SizedBox(height: 2),
                     Text(
-                      'Burnout Trend',
-                      style: Theme.of(context).textTheme.titleMedium,
+                      'Track momentum over recent check-ins.',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppTheme.secondaryDark.withValues(alpha: 0.86),
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     TrendChart(scores: snapshot.trend),
@@ -84,13 +149,20 @@ class DashboardScreen extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Detected Causes',
-                      style: Theme.of(context).textTheme.titleMedium,
+                    const _SectionTitle(
+                      icon: Icons.psychology_alt_rounded,
+                      label: 'Detected Causes',
+                      tint: AppTheme.ink,
                     ),
                     const SizedBox(height: 8),
                     if (snapshot.causes.isEmpty)
-                      const Text('No causes detected yet.')
+                      Text(
+                        'No causes detected yet.',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: AppTheme.ink.withValues(alpha: 0.72),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      )
                     else
                       Wrap(
                         spacing: 8,
@@ -99,8 +171,12 @@ class DashboardScreen extends ConsumerWidget {
                             .map(
                               (cause) => Chip(
                                 label: Text(cause),
-                                backgroundColor: AppTheme.cobalt.withValues(
-                                  alpha: 0.12,
+                                backgroundColor: AppTheme.primarySoft
+                                    .withValues(alpha: 0.3),
+                                side: BorderSide(
+                                  color: AppTheme.primary.withValues(
+                                    alpha: 0.25,
+                                  ),
                                 ),
                               ),
                             )
@@ -114,27 +190,51 @@ class DashboardScreen extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Today\'s Tasks',
-                      style: Theme.of(context).textTheme.titleMedium,
+                    const _SectionTitle(
+                      icon: Icons.today_rounded,
+                      label: 'Today\'s Tasks',
+                      tint: AppTheme.ink,
                     ),
                     const SizedBox(height: 8),
                     if (snapshot.todayTasks.isEmpty)
-                      const Text('No tasks for today yet.')
+                      Text(
+                        'No tasks for today yet.',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: AppTheme.ink.withValues(alpha: 0.72),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      )
                     else
                       ...snapshot.todayTasks
                           .take(4)
                           .map(
-                            (task) => ListTile(
-                              contentPadding: EdgeInsets.zero,
-                              leading: Icon(
-                                task.completed
-                                    ? Icons.check_circle
-                                    : Icons.radio_button_unchecked,
+                            (task) => Container(
+                              margin: const EdgeInsets.only(bottom: 8),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.82),
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(
+                                  color: AppTheme.primary.withValues(
+                                    alpha: 0.2,
+                                  ),
+                                ),
                               ),
-                              title: Text(task.title),
-                              subtitle: Text(
-                                'Priority ${task.priority} • ${task.taskType}',
+                              child: ListTile(
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                ),
+                                leading: Icon(
+                                  task.completed
+                                      ? Icons.check_circle_rounded
+                                      : Icons.radio_button_unchecked_rounded,
+                                  color: task.completed
+                                      ? AppTheme.secondaryDark
+                                      : AppTheme.primaryDark,
+                                ),
+                                title: Text(task.title),
+                                subtitle: Text(
+                                  'Priority ${task.priority} • ${task.taskType}',
+                                ),
                               ),
                             ),
                           ),
@@ -151,11 +251,69 @@ class DashboardScreen extends ConsumerWidget {
   Color _classificationColor(String classification) {
     switch (classification) {
       case 'high':
-        return Colors.redAccent.withValues(alpha: 0.22);
+        return AppTheme.danger;
       case 'medium':
-        return Colors.orange.withValues(alpha: 0.24);
+        return AppTheme.warning;
       default:
-        return Colors.green.withValues(alpha: 0.2);
+        return AppTheme.secondaryDark;
     }
+  }
+}
+
+class _SectionTitle extends StatelessWidget {
+  const _SectionTitle({
+    required this.icon,
+    required this.label,
+    required this.tint,
+  });
+
+  final IconData icon;
+  final String label;
+  final Color tint;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(7),
+          decoration: BoxDecoration(
+            color: tint.withValues(alpha: 0.14),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(icon, size: 18, color: tint),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          label,
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+            color: tint,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _HeroAccent extends StatelessWidget {
+  const _HeroAccent({required this.icon});
+
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: Container(
+        width: 58,
+        height: 58,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: Colors.white.withValues(alpha: 0.16),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.34)),
+        ),
+        child: Icon(icon, color: Colors.white, size: 24),
+      ),
+    );
   }
 }

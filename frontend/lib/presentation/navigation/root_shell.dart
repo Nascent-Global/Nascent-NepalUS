@@ -152,7 +152,7 @@ class _RootShellState extends ConsumerState<RootShell> {
         ),
         bottomNavigationBar: NavigationBar(
           selectedIndex: _index,
-          indicatorColor: AppTheme.mint.withValues(alpha: 0.5),
+          indicatorColor: AppTheme.secondary.withValues(alpha: 0.5),
           onDestinationSelected: (index) {
             setState(() => _index = index);
           },

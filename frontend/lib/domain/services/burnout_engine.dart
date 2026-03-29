@@ -9,11 +9,14 @@ import '../../data/models/daily_entry.dart';
 import '../../data/repository/burnout_repository.dart';
 import '../entities/dashboard_snapshot.dart';
 import '../models/burnout_cause_type.dart';
+import 'reminder_service.dart';
 
 class BurnoutEngine {
-  BurnoutEngine(this._repository);
+  BurnoutEngine(this._repository, {ReminderService? reminderService})
+    : _reminderService = reminderService;
 
   final BurnoutRepository _repository;
+  final ReminderService? _reminderService;
   final Uuid _uuid = const Uuid();
 
   Future<void> submitDailyCheckIn({
@@ -21,7 +24,6 @@ class BurnoutEngine {
     required double workHours,
     required int mood,
     required int exerciseMinutes,
-    required bool includePomodoroWork,
   }) async {
     final now = AppDateUtils.nowUtc();
     final entry = DailyEntry(
@@ -31,13 +33,13 @@ class BurnoutEngine {
       workHours: workHours,
       mood: mood,
       exerciseMinutes: exerciseMinutes,
-      includePomodoroWork: includePomodoroWork,
+      includePomodoroWork: true,
       createdAt: now,
       synced: false,
     );
 
     await _repository.saveDailyEntry(entry);
-    await _recomputeAndPersist(now);
+    await _recomputeAndPersist(now, notifyInsights: true);
   }
 
   Future<void> completeTask(String taskId) async {
@@ -79,10 +81,12 @@ class BurnoutEngine {
 
   Future<String> startPomodoro({
     int minutes = AppConstants.defaultPomodoroMinutes,
+    String? taskLabel,
   }) {
     return _repository.startPomodoro(
       startTime: AppDateUtils.nowUtc(),
       durationMinutes: minutes,
+      taskLabel: taskLabel,
     );
   }
 
@@ -129,7 +133,10 @@ class BurnoutEngine {
     await _recomputeAndPersist(now);
   }
 
-  Future<void> _recomputeAndPersist(DateTime now) async {
+  Future<void> _recomputeAndPersist(
+    DateTime now, {
+    bool notifyInsights = false,
+  }) async {
     final entry = await _repository.getLatestDailyEntryForDate(now);
     if (entry == null) return;
 
@@ -155,6 +162,14 @@ class BurnoutEngine {
       changeAmount: 0,
       reason: 'New score snapshot from daily evaluation',
     );
+
+    if (notifyInsights) {
+      await _reminderService?.showBurnoutInsightNotification(
+        score: score,
+        classification: classification,
+        causes: causes.map((e) => e.key).toList(),
+      );
+    }
 
     await _checkAlertsForToday(now);
   }

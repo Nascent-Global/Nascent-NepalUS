@@ -337,6 +337,7 @@ class SyncService {
             'end_time': row.endTime?.toUtc().toIso8601String(),
             'duration': row.duration,
             'completed': row.completed,
+            'task_label': row.taskLabel,
           },
         );
       } on SyncApiException catch (error) {
@@ -352,6 +353,7 @@ class SyncService {
             'end_time': row.endTime?.toUtc().toIso8601String(),
             'duration': row.duration,
             'completed': row.completed,
+            'task_label': row.taskLabel,
           },
         );
       }
@@ -662,6 +664,7 @@ class SyncService {
               endTime: drift.Value(_parseDateTime(item['end_time'])),
               duration: drift.Value(_nullableInt(item['duration'])),
               completed: drift.Value(_nullableBool(item['completed'])),
+              taskLabel: drift.Value(item['task_label'] as String?),
               createdAt: drift.Value(
                 _parseDateTime(item['created_at']) ?? AppDateUtils.nowUtc(),
               ),

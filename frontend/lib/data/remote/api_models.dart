@@ -347,6 +347,7 @@ class ApiPomodoroSession {
     required this.endTime,
     required this.duration,
     required this.completed,
+    required this.taskLabel,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -356,6 +357,7 @@ class ApiPomodoroSession {
   final DateTime? endTime;
   final int? duration;
   final bool? completed;
+  final String? taskLabel;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -366,6 +368,7 @@ class ApiPomodoroSession {
       'end_time': endTime?.toUtc().toIso8601String(),
       'duration': duration,
       'completed': completed,
+      'task_label': taskLabel,
       'created_at': createdAt.toUtc().toIso8601String(),
       'updated_at': updatedAt.toUtc().toIso8601String(),
     };
@@ -380,6 +383,7 @@ class ApiPomodoroSession {
           : DateTime.parse(json['end_time'] as String).toUtc(),
       duration: (json['duration'] as num?)?.toInt(),
       completed: json['completed'] as bool?,
+      taskLabel: json['task_label'] as String?,
       createdAt: DateTime.parse(json['created_at'] as String).toUtc(),
       updatedAt: DateTime.parse(json['updated_at'] as String).toUtc(),
     );
@@ -391,17 +395,20 @@ class PomodoroSessionPatchRequest {
     this.endTime,
     this.duration,
     this.completed,
+    this.taskLabel,
   });
 
   final DateTime? endTime;
   final int? duration;
   final bool? completed;
+  final String? taskLabel;
 
   Map<String, dynamic> toJson() {
     return {
       if (endTime != null) 'end_time': endTime!.toUtc().toIso8601String(),
       if (duration != null) 'duration': duration,
       if (completed != null) 'completed': completed,
+      if (taskLabel != null) 'task_label': taskLabel,
     };
   }
 }

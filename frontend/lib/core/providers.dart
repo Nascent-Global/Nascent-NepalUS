@@ -27,7 +27,8 @@ final burnoutRepositoryProvider = Provider<BurnoutRepository>((ref) {
 
 final burnoutEngineProvider = Provider<BurnoutEngine>((ref) {
   final repository = ref.watch(burnoutRepositoryProvider);
-  return BurnoutEngine(repository);
+  final reminderService = ref.watch(reminderServiceProvider);
+  return BurnoutEngine(repository, reminderService: reminderService);
 });
 
 final localNotificationsPluginProvider =

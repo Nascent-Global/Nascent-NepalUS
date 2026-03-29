@@ -215,6 +215,7 @@ class LocalBurnoutRepository implements BurnoutRepository {
   Future<String> startPomodoro({
     required DateTime startTime,
     required int durationMinutes,
+    String? taskLabel,
   }) async {
     final id = _uuid.v4();
     final now = AppDateUtils.nowUtc();
@@ -227,6 +228,7 @@ class LocalBurnoutRepository implements BurnoutRepository {
             startTime: startTime.toUtc(),
             duration: drift.Value(durationMinutes),
             completed: const drift.Value(false),
+            taskLabel: drift.Value(taskLabel),
             createdAt: drift.Value(now),
             synced: const drift.Value(false),
           ),
@@ -250,6 +252,18 @@ class LocalBurnoutRepository implements BurnoutRepository {
         synced: const drift.Value(false),
       ),
     );
+  }
+
+  @override
+  Future<PomodoroSession?> getActivePomodoroSession() async {
+    final row =
+        await (_database.select(_database.pomodoroSessions)
+              ..where((t) => t.endTime.isNull())
+              ..orderBy([(t) => drift.OrderingTerm.desc(t.startTime)])
+              ..limit(1))
+            .getSingleOrNull();
+
+    return row == null ? null : _toPomodoroSession(row);
   }
 
   @override
@@ -461,6 +475,7 @@ class LocalBurnoutRepository implements BurnoutRepository {
       endTime: row.endTime?.toUtc(),
       duration: row.duration ?? 0,
       completed: row.completed ?? false,
+      taskLabel: row.taskLabel,
       createdAt: row.createdAt.toUtc(),
       synced: row.synced,
     );

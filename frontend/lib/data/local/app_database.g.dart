@@ -2823,6 +2823,17 @@ class $PomodoroSessionsTable extends PomodoroSessions
       'CHECK ("completed" IN (0, 1))',
     ),
   );
+  static const VerificationMeta _taskLabelMeta = const VerificationMeta(
+    'taskLabel',
+  );
+  @override
+  late final GeneratedColumn<String> taskLabel = GeneratedColumn<String>(
+    'task_label',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -2855,6 +2866,7 @@ class $PomodoroSessionsTable extends PomodoroSessions
     endTime,
     duration,
     completed,
+    taskLabel,
     createdAt,
     synced,
   ];
@@ -2901,6 +2913,12 @@ class $PomodoroSessionsTable extends PomodoroSessions
         completed.isAcceptableOrUnknown(data['completed']!, _completedMeta),
       );
     }
+    if (data.containsKey('task_label')) {
+      context.handle(
+        _taskLabelMeta,
+        taskLabel.isAcceptableOrUnknown(data['task_label']!, _taskLabelMeta),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -2942,6 +2960,10 @@ class $PomodoroSessionsTable extends PomodoroSessions
         DriftSqlType.bool,
         data['${effectivePrefix}completed'],
       ),
+      taskLabel: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}task_label'],
+      ),
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -2966,6 +2988,7 @@ class PomodoroSessionRow extends DataClass
   final DateTime? endTime;
   final int? duration;
   final bool? completed;
+  final String? taskLabel;
   final DateTime createdAt;
   final bool synced;
   const PomodoroSessionRow({
@@ -2974,6 +2997,7 @@ class PomodoroSessionRow extends DataClass
     this.endTime,
     this.duration,
     this.completed,
+    this.taskLabel,
     required this.createdAt,
     required this.synced,
   });
@@ -2990,6 +3014,9 @@ class PomodoroSessionRow extends DataClass
     }
     if (!nullToAbsent || completed != null) {
       map['completed'] = Variable<bool>(completed);
+    }
+    if (!nullToAbsent || taskLabel != null) {
+      map['task_label'] = Variable<String>(taskLabel);
     }
     map['created_at'] = Variable<DateTime>(createdAt);
     map['synced'] = Variable<bool>(synced);
@@ -3009,6 +3036,9 @@ class PomodoroSessionRow extends DataClass
       completed: completed == null && nullToAbsent
           ? const Value.absent()
           : Value(completed),
+      taskLabel: taskLabel == null && nullToAbsent
+          ? const Value.absent()
+          : Value(taskLabel),
       createdAt: Value(createdAt),
       synced: Value(synced),
     );
@@ -3025,6 +3055,7 @@ class PomodoroSessionRow extends DataClass
       endTime: serializer.fromJson<DateTime?>(json['endTime']),
       duration: serializer.fromJson<int?>(json['duration']),
       completed: serializer.fromJson<bool?>(json['completed']),
+      taskLabel: serializer.fromJson<String?>(json['taskLabel']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       synced: serializer.fromJson<bool>(json['synced']),
     );
@@ -3038,6 +3069,7 @@ class PomodoroSessionRow extends DataClass
       'endTime': serializer.toJson<DateTime?>(endTime),
       'duration': serializer.toJson<int?>(duration),
       'completed': serializer.toJson<bool?>(completed),
+      'taskLabel': serializer.toJson<String?>(taskLabel),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'synced': serializer.toJson<bool>(synced),
     };
@@ -3049,6 +3081,7 @@ class PomodoroSessionRow extends DataClass
     Value<DateTime?> endTime = const Value.absent(),
     Value<int?> duration = const Value.absent(),
     Value<bool?> completed = const Value.absent(),
+    Value<String?> taskLabel = const Value.absent(),
     DateTime? createdAt,
     bool? synced,
   }) => PomodoroSessionRow(
@@ -3057,6 +3090,7 @@ class PomodoroSessionRow extends DataClass
     endTime: endTime.present ? endTime.value : this.endTime,
     duration: duration.present ? duration.value : this.duration,
     completed: completed.present ? completed.value : this.completed,
+    taskLabel: taskLabel.present ? taskLabel.value : this.taskLabel,
     createdAt: createdAt ?? this.createdAt,
     synced: synced ?? this.synced,
   );
@@ -3067,6 +3101,7 @@ class PomodoroSessionRow extends DataClass
       endTime: data.endTime.present ? data.endTime.value : this.endTime,
       duration: data.duration.present ? data.duration.value : this.duration,
       completed: data.completed.present ? data.completed.value : this.completed,
+      taskLabel: data.taskLabel.present ? data.taskLabel.value : this.taskLabel,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       synced: data.synced.present ? data.synced.value : this.synced,
     );
@@ -3080,6 +3115,7 @@ class PomodoroSessionRow extends DataClass
           ..write('endTime: $endTime, ')
           ..write('duration: $duration, ')
           ..write('completed: $completed, ')
+          ..write('taskLabel: $taskLabel, ')
           ..write('createdAt: $createdAt, ')
           ..write('synced: $synced')
           ..write(')'))
@@ -3093,6 +3129,7 @@ class PomodoroSessionRow extends DataClass
     endTime,
     duration,
     completed,
+    taskLabel,
     createdAt,
     synced,
   );
@@ -3105,6 +3142,7 @@ class PomodoroSessionRow extends DataClass
           other.endTime == this.endTime &&
           other.duration == this.duration &&
           other.completed == this.completed &&
+          other.taskLabel == this.taskLabel &&
           other.createdAt == this.createdAt &&
           other.synced == this.synced);
 }
@@ -3115,6 +3153,7 @@ class PomodoroSessionsCompanion extends UpdateCompanion<PomodoroSessionRow> {
   final Value<DateTime?> endTime;
   final Value<int?> duration;
   final Value<bool?> completed;
+  final Value<String?> taskLabel;
   final Value<DateTime> createdAt;
   final Value<bool> synced;
   final Value<int> rowid;
@@ -3124,6 +3163,7 @@ class PomodoroSessionsCompanion extends UpdateCompanion<PomodoroSessionRow> {
     this.endTime = const Value.absent(),
     this.duration = const Value.absent(),
     this.completed = const Value.absent(),
+    this.taskLabel = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.synced = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -3134,6 +3174,7 @@ class PomodoroSessionsCompanion extends UpdateCompanion<PomodoroSessionRow> {
     this.endTime = const Value.absent(),
     this.duration = const Value.absent(),
     this.completed = const Value.absent(),
+    this.taskLabel = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.synced = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -3145,6 +3186,7 @@ class PomodoroSessionsCompanion extends UpdateCompanion<PomodoroSessionRow> {
     Expression<DateTime>? endTime,
     Expression<int>? duration,
     Expression<bool>? completed,
+    Expression<String>? taskLabel,
     Expression<DateTime>? createdAt,
     Expression<bool>? synced,
     Expression<int>? rowid,
@@ -3155,6 +3197,7 @@ class PomodoroSessionsCompanion extends UpdateCompanion<PomodoroSessionRow> {
       if (endTime != null) 'end_time': endTime,
       if (duration != null) 'duration': duration,
       if (completed != null) 'completed': completed,
+      if (taskLabel != null) 'task_label': taskLabel,
       if (createdAt != null) 'created_at': createdAt,
       if (synced != null) 'synced': synced,
       if (rowid != null) 'rowid': rowid,
@@ -3167,6 +3210,7 @@ class PomodoroSessionsCompanion extends UpdateCompanion<PomodoroSessionRow> {
     Value<DateTime?>? endTime,
     Value<int?>? duration,
     Value<bool?>? completed,
+    Value<String?>? taskLabel,
     Value<DateTime>? createdAt,
     Value<bool>? synced,
     Value<int>? rowid,
@@ -3177,6 +3221,7 @@ class PomodoroSessionsCompanion extends UpdateCompanion<PomodoroSessionRow> {
       endTime: endTime ?? this.endTime,
       duration: duration ?? this.duration,
       completed: completed ?? this.completed,
+      taskLabel: taskLabel ?? this.taskLabel,
       createdAt: createdAt ?? this.createdAt,
       synced: synced ?? this.synced,
       rowid: rowid ?? this.rowid,
@@ -3201,6 +3246,9 @@ class PomodoroSessionsCompanion extends UpdateCompanion<PomodoroSessionRow> {
     if (completed.present) {
       map['completed'] = Variable<bool>(completed.value);
     }
+    if (taskLabel.present) {
+      map['task_label'] = Variable<String>(taskLabel.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -3221,6 +3269,7 @@ class PomodoroSessionsCompanion extends UpdateCompanion<PomodoroSessionRow> {
           ..write('endTime: $endTime, ')
           ..write('duration: $duration, ')
           ..write('completed: $completed, ')
+          ..write('taskLabel: $taskLabel, ')
           ..write('createdAt: $createdAt, ')
           ..write('synced: $synced, ')
           ..write('rowid: $rowid')
@@ -5975,6 +6024,7 @@ typedef $$PomodoroSessionsTableCreateCompanionBuilder =
       Value<DateTime?> endTime,
       Value<int?> duration,
       Value<bool?> completed,
+      Value<String?> taskLabel,
       Value<DateTime> createdAt,
       Value<bool> synced,
       Value<int> rowid,
@@ -5986,6 +6036,7 @@ typedef $$PomodoroSessionsTableUpdateCompanionBuilder =
       Value<DateTime?> endTime,
       Value<int?> duration,
       Value<bool?> completed,
+      Value<String?> taskLabel,
       Value<DateTime> createdAt,
       Value<bool> synced,
       Value<int> rowid,
@@ -6022,6 +6073,11 @@ class $$PomodoroSessionsTableFilterComposer
 
   ColumnFilters<bool> get completed => $composableBuilder(
     column: $table.completed,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get taskLabel => $composableBuilder(
+    column: $table.taskLabel,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -6070,6 +6126,11 @@ class $$PomodoroSessionsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get taskLabel => $composableBuilder(
+    column: $table.taskLabel,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -6104,6 +6165,9 @@ class $$PomodoroSessionsTableAnnotationComposer
 
   GeneratedColumn<bool> get completed =>
       $composableBuilder(column: $table.completed, builder: (column) => column);
+
+  GeneratedColumn<String> get taskLabel =>
+      $composableBuilder(column: $table.taskLabel, builder: (column) => column);
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -6154,6 +6218,7 @@ class $$PomodoroSessionsTableTableManager
                 Value<DateTime?> endTime = const Value.absent(),
                 Value<int?> duration = const Value.absent(),
                 Value<bool?> completed = const Value.absent(),
+                Value<String?> taskLabel = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<bool> synced = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -6163,6 +6228,7 @@ class $$PomodoroSessionsTableTableManager
                 endTime: endTime,
                 duration: duration,
                 completed: completed,
+                taskLabel: taskLabel,
                 createdAt: createdAt,
                 synced: synced,
                 rowid: rowid,
@@ -6174,6 +6240,7 @@ class $$PomodoroSessionsTableTableManager
                 Value<DateTime?> endTime = const Value.absent(),
                 Value<int?> duration = const Value.absent(),
                 Value<bool?> completed = const Value.absent(),
+                Value<String?> taskLabel = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<bool> synced = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -6183,6 +6250,7 @@ class $$PomodoroSessionsTableTableManager
                 endTime: endTime,
                 duration: duration,
                 completed: completed,
+                taskLabel: taskLabel,
                 createdAt: createdAt,
                 synced: synced,
                 rowid: rowid,
