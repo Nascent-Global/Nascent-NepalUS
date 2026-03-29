@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Burnout Radar</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+
+<body>
+
+    <!-- ========================================================
+     NAVBAR
+     ======================================================== -->
+    <nav id="navbar">
+        <div class="nav-inner">
+            <a href="#hero" class="nav-brand">
+                <span>&#x1F9E0;</span>
+                <span class="text-gradient">Burnout Radar</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="#description">Product</a></li>
+                <li><a href="#workflow">Science</a></li>
+                <li><a href="#features">Features</a></li>
+                <li><a href="#team">Team</a></li>
+            </ul>
+            <div class="nav-actions">
+                <button class="btn-primary">Get Started</button>
+            </div>
+            <button class="hamburger" id="hamburger">&#x2630;</button>
+        </div>
+        <div class="mobile-menu" id="mobile-menu">
+            <a href="#description">Product</a>
+            <a href="#workflow">Science</a>
+            <a href="#features">Features</a>
+            <a href="#team">Team</a>
+            <div class="mobile-menu-actions">
+                <button class="btn-primary">Get Started</button>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+
+        <!-- ========================================================
+     HERO
+     ======================================================== -->
+        <section id="hero">
+            <div class="hero-blobs">
+                <div class="blob blob-1"></div>
+                <div class="blob blob-2"></div>
+                <div class="blob blob-3"></div>
+            </div>
+
+            <div class="hero-grid">
+                <!-- Left column -->
+                <div>
+                    <div id="hero-badge" class="hero-badge glass shadow-soft">
+                        <span>&#x1F44B;</span> Hi there!
+                    </div>
+                    <h1 id="hero-title" class="hero-title font-heading">
+                        Understand Your Mind
+                        <span class="text-gradient"> Before It Burns Out</span>
+                    </h1>
+                    <p id="hero-desc" class="hero-desc">
+                        Burnout Radar helps you detect, understand, and reduce stress before it becomes
+                        overwhelming. Take control of your mental wellness today.
+                    </p>
+                    <div id="hero-cta" class="hero-cta">
+                        <button class="btn-primary btn-large">Get Started</button>
+                        <button class="btn-secondary">View Demo</button>
+                    </div>
+                </div>
+
+                <!-- Right column -->
+                <div id="hero-img-col" class="hero-image-wrap">
+                    <div class="hero-char-outer">
+                        <img src="/assets/characters/say_hi.png" alt="Waving Hi character" class="hero-char char-float"
+                            style="background: none;" />
+                        <div class="hero-emoji-badge hero-emoji-1 glass shadow-soft">&#x1F49A;</div>
+                        <div class="hero-emoji-badge hero-emoji-2 glass shadow-soft">&#x1F3AF;</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="scroll-hint">
+                <span>Scroll to explore</span>
+                <div class="scroll-mouse">
+                    <div class="scroll-dot"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================
+     PROBLEM — Recognise Yourself
+     ======================================================== -->
+        <section id="problem" class="px-6">
+            <div class="max-w-5xl">
+                <div class="section-center reveal">
+                    <span class="badge glass">Recognise yourself?</span>
+                    <h2 class="section-title font-heading">
+                        Do any of these sound <span class="text-gradient">familiar?</span>
+                    </h2>
+                </div>
+
+                <!-- Card 1: Stressed (odd — text left, img right) -->
+                <div class="problem-card-row">
+                    <div class="problem-text-card glass-strong" style="margin-right:0">
+                        <div class="problem-emoji-dot" style="background:oklch(0.88 0.08 30)">&#x1F630;</div>
+                        <h3 class="problem-q font-heading">Are you stressed?</h3>
+                        <p class="problem-feeling">Everything feels overwhelming and out of control.</p>
+                    </div>
+                    <div class="problem-img-col from-right">
+                        <img src="/assets/characters/stressed.png" alt="Stressed character" class="problem-char char-float"
+                            style="animation-delay:0s" />
+                    </div>
+                </div>
+
+                <!-- Card 2: Sad (even — img left, text right) -->
+                <div class="problem-card-row even">
+                    <div class="problem-text-card glass-strong from-right">
+                        <div class="problem-emoji-dot" style="background:oklch(0.88 0.08 220)">&#x1F622;</div>
+                        <h3 class="problem-q font-heading">Are you sad?</h3>
+                        <p class="problem-feeling">A heaviness that’s hard to shake off.</p>
+                    </div>
+                    <div class="problem-img-col from-left">
+                        <img src="/assets/characters/sad.png" alt="Sad character" class="problem-char char-float"
+                            style="animation-delay:0.3s" />
+                    </div>
+                </div>
+
+                <!-- Card 3: Tired -->
+                <div class="problem-card-row">
+                    <div class="problem-text-card glass-strong">
+                        <div class="problem-emoji-dot" style="background:oklch(0.88 0.07 280)">&#x1F634;</div>
+                        <h3 class="problem-q font-heading">Are you tired?</h3>
+                        <p class="problem-feeling">No energy left, even after sleeping.</p>
+                    </div>
+                    <div class="problem-img-col from-right">
+                        <img src="/assets/characters/tired.png" alt="Tired character" class="problem-char char-float"
+                            style="animation-delay:0.6s" />
+                    </div>
+                </div>
+
+                <!-- Card 4: Burned out (even) -->
+                <div class="problem-card-row even">
+                    <div class="problem-text-card glass-strong from-right">
+                        <div class="problem-emoji-dot" style="background:oklch(0.88 0.09 45)">&#x1F525;</div>
+                        <h3 class="problem-q font-heading">Are you burned out?</h3>
+                        <p class="problem-feeling">Completely drained, nothing feels meaningful.</p>
+                    </div>
+                    <div class="problem-img-col from-left">
+                        <img src="/assets/characters/burnedout.png" alt="Burned out character" class="problem-char char-float"
+                            style="animation-delay:0.9s" />
+                    </div>
+                </div>
+
+                <!-- Card 5: Angry -->
+                <div class="problem-card-row">
+                    <div class="problem-text-card glass-strong">
+                        <div class="problem-emoji-dot" style="background:oklch(0.88 0.07 15)">&#x1F621;</div>
+                        <h3 class="problem-q font-heading">Are you angry?</h3>
+                        <p class="problem-feeling">Small things set you off more than they should.</p>
+                    </div>
+                    <div class="problem-img-col from-right">
+                        <img src="/assets/characters/angry.png" alt="Angry character" class="problem-char char-float"
+                            style="animation-delay:1.2s" />
+                    </div>
+                </div>
+
+                <!-- Card 6: Normal (even) -->
+                <div class="problem-card-row even">
+                    <div class="problem-text-card glass-strong from-right">
+                        <div class="problem-emoji-dot" style="background:oklch(0.90 0.08 168)">&#x1F642;</div>
+                        <h3 class="problem-q font-heading">Are you feeling normal?</h3>
+                        <p class="problem-feeling">You’re doing okay, but want to thrive more.</p>
+                    </div>
+                    <div class="problem-img-col from-left">
+                        <img src="/assets/characters/good.png" alt="Good character" class="problem-char char-float"
+                            style="animation-delay:1.5s" />
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ========================================================
+     DESCRIPTION
+     ======================================================== -->
+        <section id="description" class="px-6">
+            <div class="desc-grid">
+                <div class="desc-visual">
+                    <div class="desc-bg-letters font-heading">BR</div>
+                    <div class="desc-card">
+                        <div class="desc-inner glass-strong shadow-float">
+                            <div class="brain">&#x1F9E0;</div>
+                            <h3 class="font-heading">Built for the <span class="text-gradient">Nepal–US Hackathon</span>
+                            </h3>
+                            <p>Addressing real-world challenges of career pressure and burnout among students and
+                                professionals.</p>
+                            <div class="desc-tags">
+                                <span class="desc-tag">Detection</span>
+                                <span class="desc-tag">Explanation</span>
+                                <span class="desc-tag">Intervention</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="desc-content">
+                    <span class="badge glass">About the project</span>
+                    <h2 class="font-heading">What is <span class="text-gradient">Burnout Radar?</span></h2>
+                    <p>The Nepal–US Hackathon focuses on building practical, impactful solutions that address real-world
+                        challenges such as career pressure and burnout among students and professionals.</p>
+                    <p><strong>Burnout Radar</strong> is a preventive system designed to detect early signs of burnout
+                        using simple daily inputs like sleep, mood, workload, and task deadlines.</p>
+                    <p>It transforms this data into a <strong>burnout score</strong>, identifies underlying causes, and
+                        proactively alerts users when risk increases.</p>
+                    <p>Beyond detection, the system provides actionable recovery plans — reducing workload, taking
+                        breaks, guided breathing, and focus sessions.</p>
+                    <p>By combining detection, explanation, and intervention into one feedback loop, Burnout Radar
+                        promotes <strong>healthier and sustainable productivity.</strong></p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================
+     WORKFLOW — How It Works
+     ======================================================== -->
+        <section id="workflow" class="px-6">
+            <div class="max-w-5xl">
+                <div class="section-center reveal">
+                    <span class="badge glass">The process</span>
+                    <h2 class="section-title font-heading">How It <span class="text-gradient">Works</span></h2>
+                </div>
+
+                <div class="workflow-timeline">
+                    <div class="workflow-line"></div>
+
+                    <!-- Beat 1: First Steps -->
+                    <div class="workflow-beat">
+                        <div class="workflow-dot" style="background:oklch(0.90 0.09 168)"></div>
+                        <div class="wf-images from-left">
+                            <img src="/assets/characters/firstly_using_app.png" alt="Firstly using app"
+                                class="wf-img double char-float" />
+                            <img src="/assets/characters/using_app.png" alt="Using app" class="wf-img double char-float"
+                                style="animation-delay:0.4s" />
+                        </div>
+                        <div class="wf-spacer"></div>
+                        <div class="wf-card glass-strong from-right">
+                            <span class="wf-badge" style="background:oklch(0.90 0.09 168)">&#x1F50D; Detect</span>
+                            <h3 class="font-heading">First Steps</h3>
+                            <p>You download Burnout Radar and start logging your mood and daily check-ins to build
+                                self-awareness.</p>
+                        </div>
+                    </div>
+
+                    <!-- Beat 2: Building Habits (even) -->
+                    <div class="workflow-beat even">
+                        <div class="workflow-dot" style="background:oklch(0.88 0.09 280)"></div>
+                        <div class="wf-images from-right">
+                            <img src="/assets/characters/breathing.png" alt="Breathing" class="wf-img triple char-float"
+                                style="animation-delay:0.2s" />
+                            <img src="/assets/characters/meditation.png" alt="Meditation" class="wf-img triple char-float"
+                                style="animation-delay:0.6s" />
+                            <img src="/assets/characters/exercise.png" alt="Exercise" class="wf-img triple char-float"
+                                style="animation-delay:1s" />
+                        </div>
+                        <div class="wf-spacer"></div>
+                        <div class="wf-card glass-strong from-left">
+                            <span class="wf-badge" style="background:oklch(0.88 0.09 280)">&#x1F4CB; Assign Tasks</span>
+                            <h3 class="font-heading">Building Habits</h3>
+                            <p>Burnout Radar assigns breathing, meditation, and exercise tasks tailored to your stress
+                                profile so recovery feels natural.</p>
+                        </div>
+                    </div>
+
+                    <!-- Beat 3: Seeing Progress -->
+                    <div class="workflow-beat">
+                        <div class="workflow-dot" style="background:oklch(0.90 0.09 210)"></div>
+                        <div class="wf-images from-left">
+                            <img src="/assets/characters/analysis.png" alt="Analysis" class="wf-img quad char-float"
+                                style="animation-delay:0.1s" />
+                            <img src="/assets/characters/happy_to_use_app.png" alt="Happy" class="wf-img quad char-float"
+                                style="animation-delay:0.5s" />
+                            <img src="/assets/characters/doing_meditation.png" alt="Meditation" class="wf-img quad char-float"
+                                style="animation-delay:0.9s" />
+                            <img src="/assets/characters/journaling.png" alt="Journaling" class="wf-img quad char-float"
+                                style="animation-delay:1.3s" />
+                        </div>
+                        <div class="wf-spacer"></div>
+                        <div class="wf-card glass-strong from-right">
+                            <span class="wf-badge" style="background:oklch(0.90 0.09 210)">&#x1F4A1; Explain &amp;
+                                Track</span>
+                            <h3 class="font-heading">Seeing Progress</h3>
+                            <p>AI analyses your patterns. You feel happier using the app and keep up with meditation and
+                                journaling to track growth.</p>
+                            <div class="wf-tags">
+                                <span class="wf-tag">&#x1F4CA; Analysis</span>
+                                <span class="wf-tag">&#x1F60A; Mood lift</span>
+                                <span class="wf-tag">&#x1F9D8; Meditation</span>
+                                <span class="wf-tag">&#x1F4D3; Journaling</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Beat 4: Milestones (even) -->
+                    <div class="workflow-beat even">
+                        <div class="workflow-dot" style="background:oklch(0.90 0.08 60)"></div>
+                        <div class="wf-images from-right">
+                            <img src="/assets/characters/achievement.png" alt="Achievement" class="wf-img single char-float"
+                                style="animation-delay:0.3s" />
+                        </div>
+                        <div class="wf-spacer"></div>
+                        <div class="wf-card glass-strong from-left">
+                            <span class="wf-badge" style="background:oklch(0.90 0.08 60)">&#x2705; Track
+                                Completion</span>
+                            <h3 class="font-heading">Milestones</h3>
+                            <p>Consistent effort pays off — your burnout score drops and you unlock achievements that
+                                celebrate your resilience.</p>
+                        </div>
+                    </div>
+
+                    <!-- Beat 5: Thriving -->
+                    <div class="workflow-beat">
+                        <div class="workflow-dot" style="background:oklch(0.90 0.09 150)"></div>
+                        <div class="wf-images from-left">
+                            <img src="/assets/characters/enjoyment.png" alt="Enjoyment" class="wf-img single char-float"
+                                style="animation-delay:0.4s" />
+                        </div>
+                        <div class="wf-spacer"></div>
+                        <div class="wf-card glass-strong from-right">
+                            <span class="wf-badge" style="background:oklch(0.90 0.09 150)">&#x1F4C9; Reduce Score</span>
+                            <h3 class="font-heading">Thriving</h3>
+                            <p>You’ve built lasting habits. Life feels lighter, fuller, and more joyful — burnout
+                                becomes a distant memory.</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================
+     FEATURES
+     ======================================================== -->
+        <section id="features" class="px-6">
+            <div class="max-w-6xl">
+                <div class="section-center reveal">
+                    <span class="badge glass">Feature-rich</span>
+                    <h2 class="section-title font-heading">Everything You <span class="text-gradient">Need</span></h2>
+                    <p class="text-muted" style="margin-top:1rem;max-width:36rem;margin-inline:auto">
+                        Six powerful features working in harmony to keep your mental wellness on track.
+                    </p>
+                </div>
+                <div class="features-grid">
+                    <div class="feature-card glass-strong">
+                        <div class="feature-icon">&#x1F4CA;</div>
+                        <h3 class="font-heading">Burnout Score (0–100)</h3>
+                        <p>A real-time composite score derived from your daily inputs, showing your risk level at a
+                            glance.</p>
+                        <div class="feature-hover-overlay"></div>
+                    </div>
+                    <div class="feature-card glass-strong">
+                        <div class="feature-icon">&#x1F4DD;</div>
+                        <h3 class="font-heading">Daily Inputs Tracking</h3>
+                        <p>Log sleep quality, mood, energy, workload, and tasks in under 2 minutes every day.</p>
+                        <div class="feature-hover-overlay"></div>
+                    </div>
+                    <div class="feature-card glass-strong">
+                        <div class="feature-icon">&#x1F50E;</div>
+                        <h3 class="font-heading">Smart Cause Detection</h3>
+                        <p>AI identifies the root causes of your stress — is it sleep deprivation, overwork, or social
+                            factors?</p>
+                        <div class="feature-hover-overlay"></div>
+                    </div>
+                    <div class="feature-card glass-strong">
+                        <div class="feature-icon">&#x1F48A;</div>
+                        <h3 class="font-heading">Personalized Recovery Tasks</h3>
+                        <p>Custom micro-interventions like breathing exercises, breaks, and mindfulness sessions.</p>
+                        <div class="feature-hover-overlay"></div>
+                    </div>
+                    <div class="feature-card glass-strong">
+                        <div class="feature-icon">&#x1F4C8;</div>
+                        <h3 class="font-heading">Progress Tracking (Graphs)</h3>
+                        <p>Beautiful trend charts that visualize your burnout score over time and celebrate progress.
+                        </p>
+                        <div class="feature-hover-overlay"></div>
+                    </div>
+                    <div class="feature-card glass-strong">
+                        <div class="feature-icon">&#x1F514;</div>
+                        <h3 class="font-heading">Alerts &amp; Reminders</h3>
+                        <p>Smart nudges and proactive alerts when your score crosses critical thresholds.</p>
+                        <div class="feature-hover-overlay"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================
+     APP EXPERIENCE
+     ======================================================== -->
+        <section id="experience" class="reveal">
+            <div class="exp-header">
+                <span class="badge glass">In-app experience</span>
+                <h2 class="section-title font-heading">Experience the <span class="text-gradient">App</span></h2>
+                <p class="exp-hint text-muted">Scroll to explore each screen</p>
+            </div>
+
+            <div class="exp-stage">
+                <!-- Prev arrow -->
+                <div class="exp-nav-arrow prev">
+                    <div class="exp-arrow-btn">←</div>
+                </div>
+
+                <!-- Phone mockup -->
+                <div class="exp-phone-wrap">
+                    <div class="exp-phone">
+                        <div class="exp-phone-notch" id="exp-notch" style="background:oklch(0.90 0.08 168 / 0.6)">
+                            <div class="exp-notch-bar"></div>
+                        </div>
+                        <div class="exp-phone-screen">
+
+                            <img src="/assets/appscreen/screen1.png" class="exp-screen-img" alt="" data-index="0" />
+                            <img src="/assets/appscreen/screen2.png" class="exp-screen-img" alt="Breathing Exercise" data-index="1" />
+                            <img src="/assets/appscreen/screen3.png" class="exp-screen-img" alt="Meditation" data-index="2" />
+                            <img src="/assets/appscreen/screen4.png" class="exp-screen-img" alt="Exercise Tasks" data-index="3" />
+                            <img src="/assets/appscreen/screen5.png" class="exp-screen-img" alt="Progress Analysis" data-index="4" />
+                            <img src="/assets/appscreen/screen6.png" class="exp-screen-img" alt="Achievement Screen" data-index="5" />
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Next arrow -->
+                <div class="exp-nav-arrow next">
+                    <div class="exp-arrow-btn">→</div>
+
+                </div>
+            </div>
+
+            <!-- Dots -->
+            <div class="exp-dots">
+                <button class="exp-dot active" data-i="0" aria-label="Mood Logging"></button>
+                <button class="exp-dot" data-i="1" aria-label="Breathing Exercise"></button>
+                <button class="exp-dot" data-i="2" aria-label="Meditation"></button>
+                <button class="exp-dot" data-i="3" aria-label="Exercise Tasks"></button>
+                <button class="exp-dot" data-i="4" aria-label="Progress Analysis"></button>
+                <button class="exp-dot" data-i="5" aria-label="Achievement Screen"></button>
+            </div>
+
+
+        </section>
+
+        <!-- ========================================================
+     TRANSFORMATION
+     ======================================================== -->
+        <section id="transformation" class="px-6">
+            <div class="max-w-6xl">
+                <div class="section-center reveal">
+                    <h2 class="section-title font-heading">
+                        From <span class="text-gradient">overwhelmed</span><br>to in control.
+                    </h2>
+                </div>
+
+                <div class="transform-cards">
+                    <!-- Before -->
+                    <div class="transform-before">
+                        <div class="transform-inner">
+                            <span class="transform-label">Before Burnout Radar</span>
+                            <img src="/assets/characters/burnedout.png" alt="Burned out character" class="transform-img char-float"
+                                style="animation-delay:0.2s" />
+                            <ul class="transform-list">
+                                <li><span style="color:#f87171">&#x2717;</span> Overwhelmed &amp; exhausted</li>
+                                <li><span style="color:#f87171">&#x2717;</span> No clear recovery path</li>
+                                <li><span style="color:#f87171">&#x2717;</span> Ignoring warning signs</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- After -->
+                    <div class="transform-after">
+                        <div class="transform-inner">
+                            <span class="transform-label">After Burnout Radar</span>
+                            <img src="/assets/characters/enjoyment.png" alt="Joyful character" class="transform-img char-float"
+                                style="animation-delay:0.4s" />
+                            <ul class="transform-list">
+                                <li><span style="color:#059669">&#x2713;</span> Calm &amp; in control</li>
+                                <li><span style="color:#059669">&#x2713;</span> Clear recovery roadmap</li>
+                                <li><span style="color:#059669">&#x2713;</span> Early warnings caught</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Activity cards -->
+                <div class="activities-grid">
+                    <div class="activity-card glass-strong">
+                        <img src="/assets/characters/breathing.png" alt="Breathing" class="activity-img char-float"
+                            style="animation-delay:0s" />
+                        <h4 class="font-heading">Breathing Exercise</h4>
+                        <p>Calm your nervous system in minutes.</p>
+                    </div>
+                    <div class="activity-card glass-strong">
+                        <img src="/assets/characters/meditation.png" alt="Meditation" class="activity-img char-float"
+                            style="animation-delay:0.25s" />
+                        <h4 class="font-heading">Meditation</h4>
+                        <p>Reconnect with the present moment.</p>
+                    </div>
+                    <div class="activity-card glass-strong">
+                        <img src="/assets/characters/journaling.png" alt="Journaling" class="activity-img char-float"
+                            style="animation-delay:0.5s" />
+                        <h4 class="font-heading">Journaling</h4>
+                        <p>Process emotions through writing.</p>
+                    </div>
+                    <div class="activity-card glass-strong">
+                        <img src="/assets/characters/exercise.png" alt="Exercise" class="activity-img char-float"
+                            style="animation-delay:0.75s" />
+                        <h4 class="font-heading">Task Completion</h4>
+                        <p>Build momentum with small wins.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================
+     BENEFITS
+     ======================================================== -->
+        <section id="benefits" class="px-6">
+            <div class="max-w-6xl">
+                <div class="section-center reveal">
+                    <span class="badge glass">The impact</span>
+                    <h2 class="section-title font-heading">Why <span class="text-gradient">Burnout Radar?</span></h2>
+                </div>
+                <div class="benefits-flex">
+                    <div class="benefit-card glass-strong">
+                        <div class="benefit-icon">&#x1F9D8;</div>
+                        <h3 class="font-heading">Reduce Stress Early</h3>
+                        <p>Catch burnout warning signs before they escalate into crisis.</p>
+                    </div>
+                    <div class="benefit-card glass-strong">
+                        <div class="benefit-icon">&#x26A1;</div>
+                        <h3 class="font-heading">Improve Productivity</h3>
+                        <p>Sustainable output instead of boom-and-bust energy cycles.</p>
+                    </div>
+                    <div class="benefit-card glass-strong">
+                        <div class="benefit-icon">&#x1F9E0;</div>
+                        <h3 class="font-heading">Better Mental Clarity</h3>
+                        <p>Lower cortisol, sharper focus, and clearer decision-making.</p>
+                    </div>
+                    <div class="benefit-card glass-strong">
+                        <div class="benefit-icon">&#x1F331;</div>
+                        <h3 class="font-heading">Healthy Habits</h3>
+                        <p>Build lasting daily rituals for sleep, movement, and mindfulness.</p>
+                    </div>
+                    <div class="benefit-card glass-strong">
+                        <div class="benefit-icon">&#x2696;&#xFE0F;</div>
+                        <h3 class="font-heading">Work-Life Balance</h3>
+                        <p>Set boundaries that protect your personal time and energy.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================
+     TEAM
+     ======================================================== -->
+        <section id="team" class="px-6">
+            <div class="max-w-6xl">
+                <div class="section-center reveal">
+                    <span class="badge glass">The people behind it</span>
+                    <h2 class="section-title font-heading">Meet the <span class="text-gradient">Team</span></h2>
+                </div>
+                <div class="team-grid">
+                    <div class="team-card glass-strong">
+                    
+                        <div class="team-photo-placeholder" style="background:oklch(0.88 0.09 168 / 0.25)">
+                            <img src="assets/team/Sameep.png" alt="">
+                        </div>
+                        <h3 class="font-heading">Sameep Kathayat</h3>
+                        <p class="role">Full Stack Developer</p>
+                        <div class="team-socials">
+                            <a href="https://www.linkedin.com/in/sameepkat/" target="_blank" class="social-btn"
+                                aria-label="LinkedIn"><i class="fa fa-linkedin-square" style="font-size:36px;color:blue"></i></a>
+                            <a href="https://github.com/sameepkat/" target="_blank" class="social-btn" aria-label="GitHub"><i class="fa fa-github" style="font-size:36px"></i></a>
+                        </div>
+                    </div>
+                    <div class="team-card glass-strong">
+                        
+                        <div class="team-photo-placeholder" style="background:oklch(0.88 0.09 168 / 0.25)">
+                            <img src="assets/team/Grish.jpg" alt="">
+                        </div>
+                        <h3 class="font-heading">Grish Rana</h3>
+                        <p class="role">Backend Developer</p>
+                        <div class="team-socials">
+                            <a href="https://linkedin.com" target="_blank" class="social-btn"
+                                aria-label="LinkedIn"><i class="fa fa-linkedin-square" style="font-size:36px;color:blue"></i></a>
+                            <a href="https://github.com/grishrana" target="_blank" class="social-btn" aria-label="GitHub"><i class="fa fa-github" style="font-size:36px"></i></a>
+                        </div>
+                    </div>
+                    <div class="team-card glass-strong">
+                        
+                        <div class="team-photo-placeholder" style="background:oklch(0.88 0.09 168 / 0.25)">
+                            <img src="assets/team/Ansarul.jpg" alt="">
+                        </div>
+                        <h3 class="font-heading">Ansarul Haq</h3>
+                        <p class="role">Frontend Developer</p>
+                        <div class="team-socials">
+                            <a href="https://linkedin.com" target="_blank" class="social-btn"
+                                aria-label="LinkedIn"><i class="fa fa-linkedin-square" style="font-size:36px;color:blue"></i></a>
+                            <a href="https://github.com/AnsarulHaq786" target="_blank" class="social-btn" aria-label="GitHub"><i class="fa fa-github" style="font-size:36px"></i></a>
+                        </div>
+                    </div>
+                    <div class="team-card glass-strong">
+                        
+                        <div class="team-photo-placeholder" style="background:oklch(0.88 0.09 280 / 0.25)">
+                            <img src="assets/team/Suresh.jpg" alt="">
+                        </div>
+                        <h3 class="font-heading">Suresh Shrestha</h3>
+                        <p class="role">Full Stack Developer</p>
+                        <div class="team-socials">
+                            <a href="https://www.linkedin.com/in/sureshcstha/" target="_blank" class="social-btn"
+                                aria-label="LinkedIn"><i class="fa fa-linkedin-square" style="font-size:36px;color:blue"></i></a>
+                            <a href="https://github.com/sureshcstha" target="_blank" class="social-btn" aria-label="GitHub"><i class="fa fa-github" style="font-size:36px"></i></a>
+                        </div>
+                    </div>
+                    <div class="team-card glass-strong">
+                        
+                        <div class="team-photo-placeholder" style="background:oklch(0.88 0.09 210 / 0.25)">
+                            <img src="assets/team/Keshab.jpeg" alt="">
+                        </div>
+                        <h3 class="font-heading">Keshab Thapa</h3>
+                        <p class="role">UI/UX Designer</p>
+                        <div class="team-socials">
+                            <a href="https://linkedin.com/in/keshabthapa2062" target="_blank" class="social-btn"
+                                aria-label="LinkedIn"><i class="fa fa-linkedin-square" style="font-size:36px;color:blue"></i></a>
+                            <a href="https://github.com/keshabthapa2062" target="_blank" class="social-btn" aria-label="GitHub"><i class="fa fa-github" style="font-size:36px"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================
+     CTA
+     ======================================================== -->
+        <section id="cta">
+            <div class="cta-blob-1"></div>
+            <div class="cta-blob-2"></div>
+            <div class="cta-inner">
+                <div class="cta-icon">&#x1F9E0;</div>
+                <h2 class="font-heading">
+                    Take control before<br>
+                    <span>burnout takes over</span>
+                </h2>
+                <p>Join thousands of people who are already building healthier, more sustainable work habits with
+                    Burnout Radar.</p>
+                <div class="cta-buttons">
+                    <button class="btn-cta-primary" href="">
+                        <span>&#x2B07;&#xFE0F;</span> Download App
+                    </button>
+                    <button class="btn-cta-secondary" href="">
+                        <span>&#x1F5A5;&#xFE0F;</span> Try Web Version
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================
+     LINKS
+     ======================================================== -->
+        <section id="links" class="px-6">
+            <div class="links-grid">
+                <div class="links-col">
+                    <h3 class="font-heading">Contact Info</h3>
+                    <ul class="links-list">
+                        <li><a href=""><span class="link-icon">&#x2709;&#xFE0F;</span>
+                                hello@burnoutradar.app</a></li>
+                        <li><span><span class="link-icon">&#x1F517;</span> burnoutradar.app</span></li>
+                    </ul>
+                </div>
+                <div class="links-col">
+                    <h3 class="font-heading">Resources</h3>
+                    <ul class="links-list">
+                        <li><a href="https://github.com/Nascent-Global/Nascent-NepalUS" target="_blank"><span class="link-icon">&#x1F4BB;</span> GitHub
+                                Repository</a></li>
+                        <li><a href="/docs"><span class="link-icon">&#x1F4C4;</span> Documentation</a></li>
+                    </ul>
+                </div>
+                <div class="links-col">
+                    <h3 class="font-heading">Social Links</h3>
+                    <div class="social-row">
+                        <a href="https://linkedin.com/in/sameepkat" target="_blank" class="social-icon-btn"
+                            aria-label="LinkedIn"><i class="fa fa-linkedin-square" style="font-size:36px;color:blue"></i></a>
+                        <a href="https://github.com/Nascent-Global/Nascent-NepalUS" target="_blank" class="social-icon-btn" aria-label="GitHub"><i class="fa fa-github" style="font-size:36px"></i></a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ========================================================
+     FOOTER
+     ======================================================== -->
+    <footer>
+        <div class="footer-inner">
+            <div class="footer-brand font-heading">
+                <span>&#x1F9E0;</span>
+                <span class="text-gradient">Burnout Radar</span>
+            </div>
+            <p class="footer-copy">
+                &copy; <span id="year"></span> Burnout Radar. All rights reserved.
+                &middot;
+            </p>
+            <div class="footer-links">
+                <a href="/privacy">Privacy</a>
+                <a href="/terms">Terms</a>
+                <a href="/contact">Contact</a>
+                <div class="footer-social">
+                    <a href="https://github.com/Nascent-Global/Nascent-NepalUS" target="_blank" aria-label="GitHub">GitHub</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+    <script>
+        // Set footer year
+        document.getElementById('year').textContent = new Date().getFullYear();
+
+        // Update exp label/emoji when screen changes
+        const EXP_SCREENS = [
+            { name: 'Mood Logging', emoji: '\uD83D\uDCCB', color: 'oklch(0.90 0.08 168 / 0.6)' },
+            { name: 'Breathing Exercise', emoji: '\uD83C\uDF2C\uFE0F', color: 'oklch(0.90 0.08 210 / 0.6)' },
+            { name: 'Meditation', emoji: '\uD83E\uDDD8', color: 'oklch(0.88 0.09 280 / 0.6)' },
+            { name: 'Exercise Tasks', emoji: '\uD83C\uDFC3', color: 'oklch(0.90 0.08 60 / 0.6)' },
+            { name: 'Progress Analysis', emoji: '\uD83D\uDCCA', color: 'oklch(0.90 0.09 150 / 0.6)' },
+            { name: 'Achievement Screen', emoji: '\uD83C\uDFC6', color: 'oklch(0.90 0.09 50 / 0.6)' },
+        ];
+
+        // Patch setScreen to also update label+notch color
+        const origSetScreen = window.__origSetScreen;
+        const expName = document.getElementById('exp-name');
+        const expEmoji = document.getElementById('exp-emoji');
+        const expNotch = document.getElementById('exp-notch');
+
+        // Observer to update label as script.js changes the active img
+        const labelObserver = new MutationObserver(() => {
+            const active = document.querySelector('.exp-screen-img.active');
+            if (!active) return;
+            const idx = parseInt(active.dataset.index || '0', 10);
+            const s = EXP_SCREENS[idx];
+            if (expName) expName.textContent = s.name;
+            if (expEmoji) expEmoji.textContent = s.emoji;
+            if (expNotch) expNotch.style.background = s.color;
+        });
+        document.querySelectorAll('.exp-screen-img').forEach(img => {
+            labelObserver.observe(img, { attributes: true, attributeFilter: ['class'] });
+        });
+    </script>
+</body>
+
+</html>
