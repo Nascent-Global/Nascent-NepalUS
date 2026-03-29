@@ -1,28 +1,11 @@
 from django.utils import timezone
-from rest_framework import filters, permissions, serializers, viewsets
+from rest_framework import filters, permissions, viewsets
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 
 from .models import Task
-
-
-# Serializer
-class TaskSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Task
-        fields = [
-            "id",
-            "date",
-            "title",
-            "deadline",
-            "priority",
-            "completed",
-            "task_type",
-            "created_at",
-            "synced",
-        ]
-        read_only_fields = ["id", "created_at"]
+from .serializers import TaskSerializer
 
 
 # Simple pagination for list endpoints

@@ -1,23 +1,9 @@
-from rest_framework import serializers, viewsets
+from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from .models import BreathingSession
-
-
-# Serializer
-class BreathingSessionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = BreathingSession
-        fields = [
-            "id",
-            "started_at",
-            "duration",
-            "completed",
-            "created_at",
-            "synced",
-        ]
-        read_only_fields = ["id", "created_at"]
+from .serializers import BreathingSessionSerializer
 
 
 # ViewSet (basic CRUD + recent)
