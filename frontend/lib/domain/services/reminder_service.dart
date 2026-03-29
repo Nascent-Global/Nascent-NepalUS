@@ -1,5 +1,8 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:timezone/data/latest.dart' as tz;
+import 'package:timezone/timezone.dart' as tz;
 
 import '../../core/constants.dart';
 
@@ -9,6 +12,7 @@ class ReminderService {
   final FlutterLocalNotificationsPlugin _plugin;
 
   bool _initialized = false;
+  bool _timezoneInitialized = false;
   bool? _permissionGranted;
 
   static const _dailyReminderEnabledKey = 'daily_reminder_enabled';
@@ -30,7 +34,20 @@ class ReminderService {
     );
 
     await _plugin.initialize(settings: settings);
+    await _initializeTimezone();
     _initialized = true;
+  }
+
+  Future<void> _initializeTimezone() async {
+    if (_timezoneInitialized) return;
+    tz.initializeTimeZones();
+    try {
+      final timezoneInfo = await FlutterTimezone.getLocalTimezone();
+      tz.setLocalLocation(tz.getLocation(timezoneInfo.identifier));
+    } catch (_) {
+      // Keep local fallback even when timezone lookup fails.
+    }
+    _timezoneInitialized = true;
   }
 
   Future<bool> _ensureNotificationPermission() async {
@@ -61,13 +78,15 @@ class ReminderService {
       ),
     );
 
-    await _plugin.periodicallyShow(
+    await _plugin.cancel(id: AppConstants.reminderNotificationId);
+    await _plugin.zonedSchedule(
       id: AppConstants.reminderNotificationId,
-      title: 'Daily burnout check-in',
+      title: 'Morning burnout check-in',
       body:
-          'Log sleep, work, mood, and exercise. ${_quotes[_quoteIndexFromNow()]}',
-      repeatInterval: RepeatInterval.daily,
+          'Sync sleep/exercise, log mood/work, and stay ahead today. ${_quotes[_quoteIndexFromNow()]}',
+      scheduledDate: _nextMorningTime(hour: 8, minute: 0),
       notificationDetails: details,
+      matchDateTimeComponents: DateTimeComponents.time,
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
     );
 
@@ -155,5 +174,21 @@ class ReminderService {
 
   int _quoteIndexFromNow() {
     return DateTime.now().millisecondsSinceEpoch % _quotes.length;
+  }
+
+  tz.TZDateTime _nextMorningTime({required int hour, required int minute}) {
+    final now = tz.TZDateTime.now(tz.local);
+    var scheduled = tz.TZDateTime(
+      tz.local,
+      now.year,
+      now.month,
+      now.day,
+      hour,
+      minute,
+    );
+    if (!scheduled.isAfter(now)) {
+      scheduled = scheduled.add(const Duration(days: 1));
+    }
+    return scheduled;
   }
 }
