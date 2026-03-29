@@ -1,0 +1,64 @@
+{
+  "name": "DailyLog",
+  "type": "object",
+  "properties": {
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "The date of the log entry"
+    },
+    "logged_at": {
+      "type": "string",
+      "description": "ISO datetime when the log was submitted"
+    },
+    "session": {
+      "type": "string",
+      "enum": [
+        "morning",
+        "night"
+      ],
+      "description": "Which session of the day this log belongs to"
+    },
+    "sleep_hours": {
+      "type": "number",
+      "description": "Hours of sleep last night"
+    },
+    "work_hours": {
+      "type": "number",
+      "description": "Hours of work or study"
+    },
+    "mood": {
+      "type": "number",
+      "description": "Mood rating from 1 to 5"
+    },
+    "deadlines": {
+      "type": "number",
+      "description": "Number of deadlines or tasks"
+    },
+    "overwhelmed": {
+      "type": "boolean",
+      "description": "Whether feeling overwhelmed"
+    },
+    "burnout_score": {
+      "type": "number",
+      "description": "Calculated burnout score 0-100"
+    },
+    "burnout_level": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "description": "Burnout level category"
+    }
+  },
+  "required": [
+    "date",
+    "sleep_hours",
+    "work_hours",
+    "mood",
+    "deadlines",
+    "overwhelmed"
+  ]
+}

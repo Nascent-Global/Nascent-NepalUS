@@ -1,0 +1,39 @@
+{
+  "name": "Question",
+  "type": "object",
+  "properties": {
+    "question_text": {
+      "type": "string",
+      "description": "The question asked by the user"
+    },
+    "answer_text": {
+      "type": "string",
+      "description": "The answer provided by a mental health professional"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Tags like stress, anxiety, sleep, burnout, work"
+    },
+    "is_answered": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the question has been answered"
+    },
+    "is_verified": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the answer is verified by a mental health professional"
+    },
+    "is_seeded": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this is a seeded example question"
+    }
+  },
+  "required": [
+    "question_text"
+  ]
+}
