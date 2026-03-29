@@ -13,6 +13,7 @@ import '../data/repository/burnout_repository.dart';
 import '../data/repository/local_burnout_repository.dart';
 import '../domain/entities/dashboard_snapshot.dart';
 import '../domain/services/burnout_engine.dart';
+import '../domain/services/health_connect_service.dart';
 import '../domain/services/reminder_service.dart';
 import '../domain/services/sync_service.dart';
 
@@ -29,6 +30,10 @@ final burnoutEngineProvider = Provider<BurnoutEngine>((ref) {
   final repository = ref.watch(burnoutRepositoryProvider);
   final reminderService = ref.watch(reminderServiceProvider);
   return BurnoutEngine(repository, reminderService: reminderService);
+});
+
+final healthConnectServiceProvider = Provider<HealthConnectService>((ref) {
+  return HealthConnectService();
 });
 
 final localNotificationsPluginProvider =

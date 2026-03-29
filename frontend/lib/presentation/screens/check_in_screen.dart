@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -26,6 +28,11 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen>
   int _mood = _defaultMood;
   int _exercise = _defaultExercise;
   bool _submitting = false;
+  bool _syncingHealth = false;
+  bool _healthConnected = false;
+  bool _healthUsingFallback = true;
+  String _healthMessage = 'Using fallback values until Health Connect sync.';
+  DateTime? _healthSyncedAt;
   late String _activeDateKey;
 
   @override
@@ -33,6 +40,10 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _activeDateKey = AppDateUtils.todayUtcKey();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      unawaited(_syncHealthSignals(silent: true, requestPermissions: true));
+    });
   }
 
   @override
@@ -58,7 +69,12 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen>
       _work = _defaultWork;
       _mood = _defaultMood;
       _exercise = _defaultExercise;
+      _healthConnected = false;
+      _healthUsingFallback = true;
+      _healthMessage = 'Using fallback values until Health Connect sync.';
+      _healthSyncedAt = null;
     });
+    unawaited(_syncHealthSignals(silent: true, requestPermissions: false));
   }
 
   void _queueDayBoundaryCheck() {
@@ -97,6 +113,37 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen>
     }
   }
 
+  Future<void> _syncHealthSignals({
+    bool silent = false,
+    bool requestPermissions = true,
+  }) async {
+    if (_syncingHealth) return;
+    setState(() => _syncingHealth = true);
+
+    final health = ref.read(healthConnectServiceProvider);
+    final snapshot = await health.fetchTodaySignals(
+      requestPermissions: requestPermissions,
+    );
+
+    if (!mounted) return;
+    setState(() {
+      _sleep = snapshot.sleepHours;
+      _exercise = snapshot.exerciseMinutes;
+      _healthConnected =
+          snapshot.healthConnectAvailable && snapshot.permissionsGranted;
+      _healthUsingFallback = snapshot.usedFallback;
+      _healthMessage = snapshot.message;
+      _healthSyncedAt = snapshot.syncedAt.toLocal();
+      _syncingHealth = false;
+    });
+
+    if (!silent && mounted) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(snapshot.message)));
+    }
+  }
+
   String get _moodLabel {
     switch (_mood) {
       case 1:
@@ -114,6 +161,135 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen>
     }
   }
 
+  String get _healthStatusText {
+    final syncedAt = _healthSyncedAt;
+    if (syncedAt == null) return _healthMessage;
+    final timeOfDay = TimeOfDay.fromDateTime(syncedAt).format(context);
+    return '$_healthMessage Last sync: $timeOfDay';
+  }
+
+  Widget _buildHealthConnectSection() {
+    final statusColor = _healthConnected ? AppTheme.primary : AppTheme.warning;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: <Color>[
+            statusColor.withValues(alpha: 0.16),
+            Colors.white.withValues(alpha: 0.92),
+          ],
+        ),
+        border: Border.all(
+          color: statusColor.withValues(alpha: 0.26),
+          width: 1.1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              Container(
+                width: 30,
+                height: 30,
+                decoration: BoxDecoration(
+                  color: statusColor.withValues(alpha: 0.22),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  Icons.monitor_heart_rounded,
+                  size: 16,
+                  color: statusColor,
+                ),
+              ),
+              const SizedBox(width: 8),
+              const Expanded(
+                child: Text(
+                  'Health Connect Signals',
+                  style: TextStyle(
+                    color: AppTheme.ink,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+              Icon(
+                _healthConnected ? Icons.verified_rounded : Icons.info_outline,
+                color: statusColor,
+                size: 18,
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: <Widget>[
+              _HealthValueChip(
+                label: 'Sleep',
+                value: '${_sleep.toStringAsFixed(1)} h',
+                tint: AppTheme.secondaryDark,
+              ),
+              _HealthValueChip(
+                label: 'Exercise',
+                value: '$_exercise min',
+                tint: AppTheme.primaryDark,
+              ),
+              if (_healthUsingFallback)
+                _HealthValueChip(
+                  label: 'Mode',
+                  value: 'Fallback',
+                  tint: AppTheme.warning,
+                ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            _healthStatusText,
+            style: TextStyle(
+              color: AppTheme.ink.withValues(alpha: 0.72),
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 10),
+          OutlinedButton.icon(
+            onPressed: _syncingHealth
+                ? null
+                : () => _syncHealthSignals(requestPermissions: true),
+            style: OutlinedButton.styleFrom(
+              minimumSize: const Size.fromHeight(44),
+              side: BorderSide(color: statusColor.withValues(alpha: 0.65)),
+              foregroundColor: statusColor,
+            ),
+            icon: _syncingHealth
+                ? SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: statusColor,
+                    ),
+                  )
+                : Icon(
+                    _healthConnected ? Icons.sync_rounded : Icons.link_rounded,
+                  ),
+            label: Text(
+              _healthConnected
+                  ? 'Refresh Health Data'
+                  : 'Connect Health Connect',
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildMetricSection({
     required String title,
     required String valueLabel,
@@ -123,6 +299,7 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen>
     required int divisions,
     required IconData icon,
     required ValueChanged<double> onChanged,
+    String? helperText,
     Color tint = AppTheme.secondary,
   }) {
     return Container(
@@ -140,40 +317,37 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen>
         ),
         border: Border.all(color: tint.withValues(alpha: 0.26), width: 1.1),
       ),
-      child: Stack(
-        clipBehavior: Clip.none,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Positioned(
-            top: -4,
-            right: -4,
-            child: IgnorePointer(
-              child: Container(
-                width: 34,
-                height: 34,
-                decoration: BoxDecoration(
-                  color: tint.withValues(alpha: 0.24),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(icon, size: 18, color: tint),
-              ),
-            ),
-          ),
-          Column(
+          Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              Row(
-                children: <Widget>[
-                  Expanded(
-                    child: Text(
-                      title,
-                      style: const TextStyle(
-                        color: AppTheme.ink,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
+              Container(
+                width: 30,
+                height: 30,
+                decoration: BoxDecoration(
+                  color: tint.withValues(alpha: 0.22),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(icon, size: 16, color: tint),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                    color: AppTheme.ink,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
                   ),
-                  Container(
+                ),
+              ),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 10,
                       vertical: 6,
@@ -184,6 +358,9 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen>
                     ),
                     child: Text(
                       valueLabel,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      softWrap: false,
                       style: TextStyle(
                         color: tint == AppTheme.secondary
                             ? AppTheme.secondaryDark
@@ -193,27 +370,43 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen>
                       ),
                     ),
                   ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              SliderTheme(
-                data: SliderTheme.of(context).copyWith(
-                  activeTrackColor: tint,
-                  inactiveTrackColor: tint.withValues(alpha: 0.24),
-                  thumbColor: tint == AppTheme.secondary
-                      ? AppTheme.secondaryDark
-                      : AppTheme.primaryDark,
-                  overlayColor: tint.withValues(alpha: 0.14),
-                ),
-                child: Slider(
-                  value: value,
-                  min: min,
-                  max: max,
-                  divisions: divisions,
-                  onChanged: onChanged,
                 ),
               ),
             ],
+          ),
+          if (helperText != null) ...[
+            const SizedBox(height: 4),
+            Padding(
+              padding: const EdgeInsets.only(left: 38),
+              child: Text(
+                helperText,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: AppTheme.ink.withValues(alpha: 0.72),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+          const SizedBox(height: 8),
+          SliderTheme(
+            data: SliderTheme.of(context).copyWith(
+              activeTrackColor: tint,
+              inactiveTrackColor: tint.withValues(alpha: 0.24),
+              thumbColor: tint == AppTheme.secondary
+                  ? AppTheme.secondaryDark
+                  : AppTheme.primaryDark,
+              overlayColor: tint.withValues(alpha: 0.14),
+            ),
+            child: Slider(
+              value: value,
+              min: min,
+              max: max,
+              divisions: divisions,
+              onChanged: onChanged,
+            ),
           ),
         ],
       ),
@@ -265,7 +458,7 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen>
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Capture sleep, effort, mood, and movement to keep your burnout score grounded in today.',
+                    'Sleep and exercise sync from Health Connect. Add your mood and manual work to complete today\'s check-in.',
                     style: TextStyle(
                       color: Colors.white.withValues(alpha: 0.92),
                       fontSize: 13,
@@ -332,16 +525,7 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen>
                   ],
                 ),
                 const SizedBox(height: 10),
-                _buildMetricSection(
-                  title: 'Sleep',
-                  valueLabel: '${_sleep.toStringAsFixed(1)} h',
-                  value: _sleep,
-                  min: 2,
-                  max: 11,
-                  divisions: 18,
-                  icon: Icons.bedtime_rounded,
-                  onChanged: (v) => setState(() => _sleep = v),
-                ),
+                _buildHealthConnectSection(),
                 _buildMetricSection(
                   title: 'Manual work',
                   valueLabel: '${_work.toStringAsFixed(1)} h',
@@ -355,25 +539,15 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen>
                 ),
                 _buildMetricSection(
                   title: 'Mood',
-                  valueLabel: '$_mood / 5 ($_moodLabel)',
+                  valueLabel: '$_mood / 5',
                   value: _mood.toDouble(),
                   min: 1,
                   max: 5,
                   divisions: 4,
                   icon: Icons.sentiment_satisfied_alt_rounded,
+                  helperText: _moodLabel,
                   onChanged: (v) => setState(() => _mood = v.round()),
                   tint: AppTheme.warning,
-                ),
-                _buildMetricSection(
-                  title: 'Exercise',
-                  valueLabel: '$_exercise min',
-                  value: _exercise.toDouble(),
-                  min: 0,
-                  max: 120,
-                  divisions: 24,
-                  icon: Icons.directions_run_rounded,
-                  onChanged: (v) => setState(() => _exercise = v.round()),
-                  tint: AppTheme.secondary,
                 ),
                 const SizedBox(height: 4),
                 FilledButton.icon(
@@ -416,6 +590,38 @@ class _HeroAccent extends StatelessWidget {
           border: Border.all(color: Colors.white.withValues(alpha: 0.34)),
         ),
         child: const Icon(Icons.monitor_heart_rounded, color: Colors.white),
+      ),
+    );
+  }
+}
+
+class _HealthValueChip extends StatelessWidget {
+  const _HealthValueChip({
+    required this.label,
+    required this.value,
+    required this.tint,
+  });
+
+  final String label;
+  final String value;
+  final Color tint;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      decoration: BoxDecoration(
+        color: tint.withValues(alpha: 0.14),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: tint.withValues(alpha: 0.28)),
+      ),
+      child: Text(
+        '$label: $value',
+        style: TextStyle(
+          color: tint,
+          fontWeight: FontWeight.w800,
+          fontSize: 12,
+        ),
       ),
     );
   }
