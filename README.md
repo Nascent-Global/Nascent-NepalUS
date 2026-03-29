@@ -1,6 +1,10 @@
 ## MVP Description — Burnout Radar
 ---
 
+<p align="center">
+  <img src="media/logo.png" alt="Burnout Radar logo" width="180" />
+</p>
+
 # 1. Product Overview
 
 Burnout Radar is a local-first mobile system for early burnout prevention during high-intensity study/work cycles.
@@ -238,4 +242,20 @@ flutter run --dart-define=API_BASE_URL=http://localhost:3000
 Service URLs:
 
 * API health: `http://localhost:3000/health`
+
+---
+
+# 12. Screenshots
+
+## 12.1 App Screens
+
+![Burnout Radar screenshot 1](media/1.jpeg)
+
+![Burnout Radar screenshot 2](media/2.jpg)
+
+![Burnout Radar screenshot 3](media/3.jpeg)
+
+![Burnout Radar screenshot 4](media/4.jpeg)
+
+![Burnout Radar screenshot 5](media/5.jpeg)
 * API docs: `http://localhost:3000/docs`
