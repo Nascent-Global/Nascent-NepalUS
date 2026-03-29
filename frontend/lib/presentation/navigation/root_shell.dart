@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/auth_providers.dart';
-import '../screens/alerts_screen.dart';
 import '../screens/auth/auth_screen.dart';
 import '../screens/check_in_screen.dart';
 import '../screens/dashboard_screen.dart';
@@ -28,7 +27,6 @@ class _RootShellState extends ConsumerState<RootShell> {
     'Tasks',
     'Recovery',
     'Focus',
-    'Alerts',
   ];
 
   final _screens = const [
@@ -37,7 +35,6 @@ class _RootShellState extends ConsumerState<RootShell> {
     TasksPressureScreen(),
     RecoveryScreen(),
     FocusScreen(),
-    AlertsScreen(),
   ];
 
   Future<void> _openAuthScreen(AuthScreenMode mode) async {
@@ -176,10 +173,6 @@ class _RootShellState extends ConsumerState<RootShell> {
             NavigationDestination(
               icon: Icon(Icons.timer_rounded),
               label: 'Focus',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.notifications_rounded),
-              label: 'Alerts',
             ),
           ],
         ),

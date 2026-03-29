@@ -41,6 +41,21 @@ final reminderServiceProvider = Provider<ReminderService>((ref) {
   return ReminderService(plugin);
 });
 
+final reminderBootstrapProvider = Provider<void>((ref) {
+  final reminderService = ref.watch(reminderServiceProvider);
+
+  Future<void> bootstrap() async {
+    try {
+      await reminderService.initialize();
+      await reminderService.enableDailyReminder();
+    } catch (_) {
+      // Keep app startup non-blocking if notification setup fails.
+    }
+  }
+
+  unawaited(bootstrap());
+});
+
 final burnoutSyncApiClientProvider = Provider<BurnoutSyncApiClient>((ref) {
   return BurnoutSyncApiClient(baseUrl: AppConfig.apiBaseUrl);
 });

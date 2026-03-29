@@ -11,6 +11,7 @@ class BurnoutRadarApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(syncBootstrapProvider);
+    ref.watch(reminderBootstrapProvider);
 
     return MaterialApp(
       title: 'Burnout Radar',
