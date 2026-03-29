@@ -1,76 +1,221 @@
-# Burnout Radar
+## MVP Description — Burnout Radar
+---
 
-Burnout Radar is a burnout support product for students and early-career professionals who need to catch overload before it turns into lost focus, missed deadlines, or full shutdown.
+# 1. Product Overview
 
-It is not a passive tracker. It closes the loop from daily signal capture to explainable scoring, cause detection, recovery actions, and follow-through.
+Burnout Radar is a local-first mobile system for early burnout prevention during high-intensity study/work cycles.
 
-## Why Now
+It combines:
 
-- Burnout is usually recognized after productivity and wellbeing have already dropped.
-- People already collect sleep, mood, work, and activity signals, but the missing piece is turning those signals into a clear next step.
-- The best fit is a product that works with weak connectivity, low setup friction, and immediate value on day one.
+* Daily check-in signals (sleep, work, mood, exercise)
+* Burnout scoring and cause detection
+* Recovery and focus interventions (breathing + pomodoro)
+* Notification nudges and habit support
+* Optional authenticated sync for multi-device continuity
 
-## End-to-End Loop
+Positioning:
 
-1. Capture a quick daily check-in with the minimum useful inputs.
-2. Compute a burnout score and trend from the latest signals.
-3. Explain the likely causes behind the score movement.
-4. Turn the cause into concrete recovery or focus interventions.
-5. Track completion and use that history to improve the next recommendation.
+> A practical burnout prevention loop that moves from signal capture to action, not just passive tracking.
 
-## Standout Capabilities
+---
 
-- Local-first by default, so core use works offline and without sign-in.
-- Sync for continuity, so authenticated users can carry history across devices without losing the local experience.
-- Explainable scoring, so the user sees why risk went up instead of getting a generic warning.
-- Cause-aware guidance, so recommendations reflect what is actually driving the score.
-- Built-in interventions, including breathing, focus sessions, and recovery tasks, so action happens inside the same product loop.
-- Append-only history, so snapshots and activity logs preserve the story over time.
-- User-centric nudges, so reminders and notifications push action rather than just reporting status.
+# 2. Core MVP Goal
 
-## Technical Implementation Snapshot
+Deliver a working product where daily behavior signals are converted into:
 
-- Mobile client: Flutter app with a local SQLite/Drift persistence layer as the primary runtime store.
-- API server: Node.js + Fastify service with documented HTTP endpoints and Swagger UI (`/docs`).
-- Data layer: PostgreSQL with Prisma schema/migrations and relational integrity across scores, causes, tasks, sessions, and alerts.
-- Auth and continuity: JWT-based auth with refresh flow, guest mode by default, authenticated sync when a session exists.
-- Sync model: push unsynced local records first, then pull remote updates and upsert locally.
-- Infrastructure:
-  - local development uses Docker Compose for PostgreSQL
-  - server runs locally during development for fast iteration
-  - production compose supports containerized server + PostgreSQL deployment
-- Device signals: Android Health Connect integration for sleep and exercise, with manual fallback when unavailable.
+1. a clear burnout score (`0-100`),
+2. explainable cause insights,
+3. immediate recovery/focus actions,
+4. measurable follow-through over time.
 
-## High-Level Architecture
+---
 
-- Local storage is the source of truth for immediate reads and writes.
-- Scoring, causes, and interventions are modeled as part of one connected workflow.
-- Authenticated sync keeps local data and backend data aligned without blocking offline use.
-- The backend handles account continuity and shared history for cross-device use.
-- Signals, scores, causes, tasks, and recovery actions all feed the same closed loop.
+# 3. Key Concept: Burnout Feedback Loop
 
-## Practical Rollout
+```id="burnout-loop"
+Input -> Analysis -> Score -> Intervention -> Recovery
+```
 
-- Start with students, founders, and early-career knowledge workers who feel overload most acutely.
-- Keep onboarding low-friction with guest access and local use first.
-- Use reminders, recovery suggestions, and visible progress to build repeat usage.
-- Add sync as a continuity layer for users who want it, not as a prerequisite for value.
-- Expand from individual use into campus, team, or wellness programs once the core loop proves sticky.
+### Inputs
 
-## Next Steps
+* Sleep hours (Health Connect first, manual fallback)
+* Work hours (manual; completed pomodoro effort included in scoring input)
+* Mood (`1-5`)
+* Exercise minutes (Health Connect first, manual fallback)
 
-- Refine scoring inputs and cause mapping with more real-world usage.
-- Expand intervention suggestions for different work patterns and recovery needs.
-- Improve sync resilience and multi-device continuity.
-- Package pilot-ready onboarding for small teams, student groups, or wellness leads.
+### Outputs
 
-## Repository Map
+* Burnout score (`0-100`)
+* Classification (`low`, `medium`, `high`)
+* Cause list (for example `LOW_SLEEP`, `HIGH_WORKLOAD`, `LOW_MOOD`)
+* Suggested actions (recovery tasks, breathing, focus reset)
 
-- `frontend/`: Flutter mobile app (offline-first UX, local storage, Health Connect, sync client)
-- `server/`: Fastify + Prisma + PostgreSQL API service
-- `docker-compose.yml`: local PostgreSQL runtime
+---
 
-## Quick Start
+# 4. Current MVP Capabilities
+
+## 4.1 Daily Signal Capture
+
+* Fast check-in flow with low-friction inputs.
+* Health Connect integration for sleep and exercise on Android.
+* Manual logging path when Health Connect is unavailable.
+
+## 4.2 Burnout Scoring + Explainability
+
+* Score snapshot generated on check-in.
+* Cause detection stored alongside each score snapshot.
+* Trend direction available for dashboard context.
+
+## 4.3 Recovery + Focus Interventions
+
+* Recovery task generation (limited to avoid overload).
+* Breathing session logging.
+* Pomodoro sessions with label support and completion tracking.
+
+## 4.4 Alerting and Nudge Layer
+
+* High-risk and rising-trend alerts.
+* Local smart notifications with score-aware guidance and motivational phrasing.
+
+## 4.5 Local-First + Sync
+
+* App remains fully usable without sign-in.
+* Local SQLite/Drift is the runtime source of truth.
+* Authenticated users get background push/pull sync with backend.
+
+---
+
+# 5. Burnout Score System
+
+## 5.1 Scoring Logic (Implemented)
+
+Score is computed from sleep, effective work load, mood, and exercise, then clamped to `0..100`.
+
+Effective work considers manual work input with completed pomodoro contribution included in check-in scoring.
+
+## 5.2 Current Rule Bands
+
+| Factor | Rule bands (higher risk -> higher score contribution) |
+| --- | --- |
+| Sleep | `<5h: +25`, `<6h: +18`, `<7h: +12`, `>8h: +4` |
+| Workload | `>10h: +25`, `>8h: +16`, `>6h: +8` |
+| Mood | `(5 - mood) * 7` |
+| Exercise | `<10m: +10`, `<20m: +6`, `<30m: +3`, `>=45m: -4` |
+
+## 5.3 Classification Bands
+
+| Score Range | Meaning |
+| --- | --- |
+| `0-30` | Low |
+| `31-70` | Medium |
+| `71-100` | High |
+
+## 5.4 Alert Triggers
+
+* High-risk alert when score `>= 70`
+* Rising-trend alert when day-over-day increase `>= 5`
+
+---
+
+# 6. Data Model (MVP)
+
+## Core Entities
+
+* `user_accounts`, `auth_sessions`, `user_profile`
+* `daily_entries`
+* `burnout_scores`
+* `burnout_causes`
+* `tasks`
+* `score_logs`
+* `pomodoro_sessions`
+* `breathing_sessions`
+* `alerts`
+
+## Data Rules
+
+* UUID keys
+* UTC timestamps
+* Append-only score snapshots
+* Causes linked to score snapshots
+* Logs linked to score snapshots
+
+---
+
+# 7. System Architecture
+
+```id="arch-v3"
+[Flutter Mobile App]
+  - local SQLite/Drift
+  - scoring + intervention runtime
+  - notifications + Health Connect
+        |
+        | authenticated sync (when session exists)
+        v
+[Fastify Server API]
+  - JWT auth
+  - REST endpoints + Swagger
+        |
+        v
+[PostgreSQL + Prisma]
+```
+
+## Runtime Responsibilities
+
+### Mobile App (`frontend/`)
+
+* local-first reads/writes
+* check-in UX and intervention UX
+* local notifications and reminder scheduling
+* Health Connect data ingestion + manual fallback
+
+### Server (`server/`)
+
+* authentication and session lifecycle
+* API contract and protected routes
+* durable persistence and relational integrity
+* cross-device history continuity
+
+### Infrastructure
+
+* local development: root `docker-compose.yml` for PostgreSQL
+* production shape: `server/docker-compose.prod.yml` for server + PostgreSQL containers
+
+---
+
+# 8. Demo Flow
+
+1. Open app in guest mode (no forced login).
+2. Submit daily check-in with current signals.
+3. Show score, classification, and detected causes.
+4. Complete one recovery/focus action.
+5. Show updated history/log context and notification nudge.
+6. Sign in and show continuity via backend sync.
+
+---
+
+# 9. Practical Rollout Path
+
+* Start with students and early-career professionals in high-load cycles.
+* Keep zero-friction entry (offline + guest) to reduce drop-off.
+* Use recovery completion + streak visibility to reinforce retention.
+* Expand into campus/team wellness pilots once usage loop stabilizes.
+
+---
+
+# 10. Repository Map
+
+* `frontend/` -> Flutter mobile application
+* `server/` -> Node.js/Fastify backend service
+* `docker-compose.yml` -> local PostgreSQL runtime
+
+Detailed docs:
+
+* Frontend: `frontend/README.md`
+* Server: `server/README.md`
+
+---
+
+# 11. Quick Start
 
 ```bash
 docker compose up -d postgres
@@ -90,7 +235,7 @@ flutter pub get
 flutter run --dart-define=API_BASE_URL=http://localhost:3000
 ```
 
-## Service URLs
+Service URLs:
 
-- API health: `http://localhost:3000/health`
-- API docs (Swagger): `http://localhost:3000/docs`
+* API health: `http://localhost:3000/health`
+* API docs: `http://localhost:3000/docs`
