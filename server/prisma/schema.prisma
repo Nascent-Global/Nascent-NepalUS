@@ -1,0 +1,245 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum AuthProvider {
+  LOCAL
+}
+
+enum BurnoutClassification {
+  LOW    @map("low")
+  MEDIUM @map("medium")
+  HIGH   @map("high")
+}
+
+enum TaskType {
+  USER     @map("user")
+  RECOVERY @map("recovery")
+}
+
+enum BurnoutCauseType {
+  LOW_SLEEP
+  HIGH_WORKLOAD
+  LOW_MOOD
+  DEADLINE_PRESSURE
+  RISING_TREND
+  TASK_OVERLOAD
+  INSUFFICIENT_BREAKS
+  OTHER
+}
+
+enum AlertType {
+  HIGH_BURNOUT
+  RISING_BURNOUT
+  TASK_OVERLOAD
+  REMINDER
+  SYSTEM
+}
+
+model UserAccount {
+  id           String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email        String      @unique
+  passwordHash String      @map("password_hash")
+  provider     AuthProvider @default(LOCAL)
+  isActive     Boolean     @default(true) @map("is_active")
+  lastLoginAt  DateTime?   @map("last_login_at") @db.Timestamptz(6)
+  createdAt    DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime    @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  profile           UserProfile?
+  authSessions      AuthSession[]
+  dailyEntries      DailyEntry[]
+  burnoutScores     BurnoutScore[]
+  tasks             Task[]
+  scoreLogs         ScoreLog[]
+  pomodoroSessions  PomodoroSession[]
+  breathingSessions BreathingSession[]
+  alerts            Alert[]
+
+  @@map("user_accounts")
+}
+
+model AuthSession {
+  id           String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String      @map("user_id") @db.Uuid
+  tokenHash    String      @unique @map("token_hash")
+  refreshToken String?     @unique @map("refresh_token")
+  expiresAt    DateTime    @map("expires_at") @db.Timestamptz(6)
+  revokedAt    DateTime?   @map("revoked_at") @db.Timestamptz(6)
+  createdAt    DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime    @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user UserAccount @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], map: "idx_auth_sessions_user_id")
+  @@index([expiresAt], map: "idx_auth_sessions_expires_at")
+  @@map("auth_sessions")
+}
+
+model UserProfile {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @unique @map("user_id") @db.Uuid
+  username  String
+  avatar    String
+  timezone  String
+  synced    Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user UserAccount @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([username], map: "idx_user_profile_username")
+  @@map("user_profile")
+}
+
+model DailyEntry {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  date       DateTime @db.Date
+  sleepHours Float?   @map("sleep_hours")
+  workHours  Float?   @map("work_hours")
+  mood       Int
+  wasOk      Boolean? @map("was_ok")
+  synced     Boolean  @default(false)
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user UserAccount @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([date], map: "idx_daily_entries_date")
+  @@index([userId, date], map: "idx_daily_entries_user_date")
+  @@index([createdAt], map: "idx_daily_entries_created_at")
+  @@map("daily_entries")
+}
+
+model BurnoutScore {
+  id             String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId         String                @map("user_id") @db.Uuid
+  date           DateTime              @db.Date
+  score          Int
+  classification BurnoutClassification
+  synced         Boolean               @default(false)
+  createdAt      DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime              @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user         UserAccount    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  causes       BurnoutCause[]
+  scoreLogs    ScoreLog[]
+
+  @@index([date], map: "idx_burnout_scores_date")
+  @@index([userId, date], map: "idx_burnout_scores_user_date")
+  @@index([userId, createdAt], map: "idx_burnout_scores_user_created_at")
+  @@map("burnout_scores")
+}
+
+model BurnoutCause {
+  id        String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  scoreId   String           @map("score_id") @db.Uuid
+  causeType BurnoutCauseType @map("cause_type")
+  synced    Boolean          @default(false)
+  createdAt DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime         @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  score BurnoutScore @relation(fields: [scoreId], references: [id], onDelete: Cascade)
+
+  @@unique([scoreId, causeType], map: "uq_burnout_causes_score_cause")
+  @@index([scoreId], map: "idx_burnout_causes_score_id")
+  @@map("burnout_causes")
+}
+
+model Task {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  date      DateTime @db.Date
+  title     String
+  deadline  DateTime? @db.Timestamptz(6)
+  priority  Int?
+  completed Boolean  @default(false)
+  taskType  TaskType @map("task_type")
+  synced    Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user UserAccount @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([date], map: "idx_tasks_date")
+  @@index([userId, date], map: "idx_tasks_user_date")
+  @@index([userId, taskType], map: "idx_tasks_user_type")
+  @@index([userId, completed], map: "idx_tasks_user_completed")
+  @@map("tasks")
+}
+
+model ScoreLog {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String   @map("user_id") @db.Uuid
+  scoreId      String   @map("score_id") @db.Uuid
+  changeAmount Int      @map("change_amount")
+  reason       String?
+  synced       Boolean  @default(false)
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user  UserAccount  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  score BurnoutScore @relation(fields: [scoreId], references: [id], onDelete: Cascade)
+
+  @@index([scoreId], map: "idx_score_logs_score_id")
+  @@index([userId, createdAt], map: "idx_score_logs_user_created_at")
+  @@map("score_logs")
+}
+
+model PomodoroSession {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  startTime DateTime @map("start_time") @db.Timestamptz(6)
+  endTime   DateTime? @map("end_time") @db.Timestamptz(6)
+  duration  Int?
+  completed Boolean?
+  taskLabel String?  @map("task_label")
+  synced    Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user UserAccount @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, startTime], map: "idx_pomodoro_user_start")
+  @@map("pomodoro_sessions")
+}
+
+model BreathingSession {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  startedAt DateTime @map("started_at") @db.Timestamptz(6)
+  duration  Int
+  completed Boolean
+  synced    Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user UserAccount @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, startedAt], map: "idx_breathing_user_started")
+  @@map("breathing_sessions")
+}
+
+model Alert {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  date      DateTime? @db.Date
+  type      AlertType
+  message   String
+  synced    Boolean   @default(false)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user UserAccount @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([date], map: "idx_alerts_date")
+  @@index([userId, date], map: "idx_alerts_user_date")
+  @@index([userId, createdAt], map: "idx_alerts_user_created_at")
+  @@map("alerts")
+}

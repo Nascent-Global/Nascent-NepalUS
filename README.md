@@ -1,136 +1,96 @@
-# Nascent-NepalUS
+# Burnout Radar
 
-A lightweight Django + DRF backend for the Burnout Reduction MVP (Nascent-NepalUS).  
-This repo contains a Dockerized development environment (Postgres DB + Adminer) and a Django project under `backend/` with project package `config`.
+Burnout Radar is a burnout support product for students and early-career professionals who need to catch overload before it turns into lost focus, missed deadlines, or full shutdown.
 
-This README explains how to start the project, required environment variables, how to contribute, and common troubleshooting notes.
+It is not a passive tracker. It closes the loop from daily signal capture to explainable scoring, cause detection, recovery actions, and follow-through.
 
----
+## Why Now
 
-## Quick start (Docker, recommended for hackathon)
+- Burnout is usually recognized after productivity and wellbeing have already dropped.
+- People already collect sleep, mood, work, and activity signals, but the missing piece is turning those signals into a clear next step.
+- The best fit is a product that works with weak connectivity, low setup friction, and immediate value on day one.
 
-1. Copy example environment file and edit secrets:
-- Copy `.env.example` to `.env` and fill sensible values (especially `POSTGRES_PASSWORD` and `SECRET_KEY`):
-  - `cp .env.example .env`
-  - Edit `.env` with your editor and set `SECRET_KEY`, `POSTGRES_PASSWORD`, and other vars.
+## End-to-End Loop
 
-2. Build and run with Docker Compose:
-- Start in the foreground (shows logs):
-  - `docker compose up --build`
-- Start detached:
-  - `docker compose up -d --build`
+1. Capture a quick daily check-in with the minimum useful inputs.
+2. Compute a burnout score and trend from the latest signals.
+3. Explain the likely causes behind the score movement.
+4. Turn the cause into concrete recovery or focus interventions.
+5. Track completion and use that history to improve the next recommendation.
 
-3. Useful commands:
-- Show web logs: `docker compose logs -f web`
-- Run migrations manually: `docker compose exec web python manage.py migrate`
-- Create a superuser interactively: `docker compose exec web python manage.py createsuperuser`
-- Enter a shell in the web container: `docker compose exec web sh`
+## Standout Capabilities
 
-4. Ports:
-- Django app: http://localhost:8000
-- Adminer DB GUI: http://localhost:8080
-- Postgres (host): configured by `POSTGRES_PORT` in `.env` (default 5432)
+- Local-first by default, so core use works offline and without sign-in.
+- Sync for continuity, so authenticated users can carry history across devices without losing the local experience.
+- Explainable scoring, so the user sees why risk went up instead of getting a generic warning.
+- Cause-aware guidance, so recommendations reflect what is actually driving the score.
+- Built-in interventions, including breathing, focus sessions, and recovery tasks, so action happens inside the same product loop.
+- Append-only history, so snapshots and activity logs preserve the story over time.
+- User-centric nudges, so reminders and notifications push action rather than just reporting status.
 
----
+## Technical Implementation Snapshot
 
-## Quick start (without Docker)
+- Mobile client: Flutter app with a local SQLite/Drift persistence layer as the primary runtime store.
+- API server: Node.js + Fastify service with documented HTTP endpoints and Swagger UI (`/docs`).
+- Data layer: PostgreSQL with Prisma schema/migrations and relational integrity across scores, causes, tasks, sessions, and alerts.
+- Auth and continuity: JWT-based auth with refresh flow, guest mode by default, authenticated sync when a session exists.
+- Sync model: push unsynced local records first, then pull remote updates and upsert locally.
+- Infrastructure:
+  - local development uses Docker Compose for PostgreSQL
+  - server runs locally during development for fast iteration
+  - production compose supports containerized server + PostgreSQL deployment
+- Device signals: Android Health Connect integration for sleep and exercise, with manual fallback when unavailable.
 
-If you prefer a local Python environment:
+## High-Level Architecture
 
-1. Create & activate a virtualenv:
-- `python -m venv .venv`
-- `source .venv/bin/activate`
+- Local storage is the source of truth for immediate reads and writes.
+- Scoring, causes, and interventions are modeled as part of one connected workflow.
+- Authenticated sync keeps local data and backend data aligned without blocking offline use.
+- The backend handles account continuity and shared history for cross-device use.
+- Signals, scores, causes, tasks, and recovery actions all feed the same closed loop.
 
-2. Install dependencies:
-- `pip install -r requirements.txt`
+## Practical Rollout
 
-3. Setup env vars:
-- Copy `.env.example` to `.env` and export or load variables (or use `direnv`/`dotenv`).
+- Start with students, founders, and early-career knowledge workers who feel overload most acutely.
+- Keep onboarding low-friction with guest access and local use first.
+- Use reminders, recovery suggestions, and visible progress to build repeat usage.
+- Add sync as a continuity layer for users who want it, not as a prerequisite for value.
+- Expand from individual use into campus, team, or wellness programs once the core loop proves sticky.
 
-4. Run migrations and start dev server:
-- From repo root: `python backend/manage.py migrate`
-- Start dev server: `python backend/manage.py runserver 0.0.0.0:8000`
+## Next Steps
 
----
+- Refine scoring inputs and cause mapping with more real-world usage.
+- Expand intervention suggestions for different work patterns and recovery needs.
+- Improve sync resilience and multi-device continuity.
+- Package pilot-ready onboarding for small teams, student groups, or wellness leads.
 
-## Required environment variables (see `.env.example`)
+## Repository Map
 
-At minimum set:
-- `SECRET_KEY` — Django secret (keep private)
-- `DEBUG` — `1` or `0`
-- `ALLOWED_HOSTS` — comma-separated hosts
-- `POSTGRES_DB` — database name (e.g., `nascent`)
-- `POSTGRES_USER` — DB user (e.g., `nascent`)
-- `POSTGRES_PASSWORD` — DB password
-- `POSTGRES_HOST` — typically `db` when using compose
-- `POSTGRES_PORT` — default `5432`
-- `GUNICORN_WORKERS` — optional for the web container
+- `frontend/`: Flutter mobile app (offline-first UX, local storage, Health Connect, sync client)
+- `server/`: Fastify + Prisma + PostgreSQL API service
+- `docker-compose.yml`: local PostgreSQL runtime
 
-The repository includes `.env.example` with defaults and additional helpful envs (burnout weights, superuser vars).
+## Quick Start
 
----
+```bash
+docker compose up -d postgres
 
-## Starting flow summary
+# terminal 1
+cd server
+cp .env.example .env
+npm install
+npm run prisma:generate
+npm run prisma:migrate:dev
+npm run dev
 
-1. `cp .env.example .env` → edit sensitive values.
-2. `docker compose up --build` → the `web` service runs migrations and starts the Django server.
-3. Visit `http://localhost:8000` for the API and `http://localhost:8080` for Adminer (DB GUI).
+# terminal 2
+cd frontend
+cp .env.example .env
+flutter pub get
+flutter run --dart-define=API_BASE_URL=http://localhost:3000
+```
 
-If the web container fails on startup:
-- Check `docker compose logs web` and `docker compose logs db`.
-- Common fixes are described in the Troubleshooting section below.
+## Service URLs
 
----
-
-## File layout and docs
-
-- Django project root: `backend/`  
-  - `backend/manage.py` — management entrypoint  
-  - Django project package: `backend/config/` (settings, urls, wsgi)  
-- App stubs: `core/`, `users/`, `tasks/`, `focus/`, `sleep/`, `analytics/` (may be empty until scaffolded)  
-- Developer doc: `backend/FILE_STRUCTURE.md` — describes where to place models, serializers, services and how to add apps.
-
----
-
-## How to contribute (short guide)
-
-1. Branching:
-- Use feature branches: `feature/<short-desc>` or `fix/<short-desc>`
-
-2. Commit messages:
-- Keep concise; include issue/task id if available.
-
-3. Linting & formatting:
-- Run `black .` and `flake8` (or configured linters) before opening a PR.
-
-4. Tests:
-- Add unit tests for new services and models.
-- Run tests locally: `docker compose exec web python manage.py test` or `python backend/manage.py test`
-
-5. Pull Request:
-- Describe intent, migration requirements, and any API changes.
-- Include screenshots or sample API responses where applicable.
-- Ensure tests and linting pass.
-
-6. Code review:
-- Keep PRs small and focused. Prefer one responsibility per PR.
-
----
-
-## Troubleshooting (common issues)
-
-- `python: can't open file '/app/manage.py'` after starting containers:
-  - If you bind-mount the project root into `/app` (`./:/app`), `/app/manage.py` may be missing because `manage.py` is located under `backend/manage.py`.
-  - Fix: change the compose volume to mount `./backend:/app` (so `/app/manage.py` exists), or remove the mount to use code baked into the image.
-
-- `Unknown command: 'collectstatic'`:
-  - This happens if `django.contrib.staticfiles` is not in `INSTALLED_APPS`. Either re-enable it in settings or remove `collectstatic` from the startup command in `docker-compose.yml`.
-
-- `You're using the staticfiles app without having set the STATIC_ROOT setting`:
-  - Set `STATIC_ROOT` in `backend/config/settings.py`, e.g.:
-    - `STATIC_ROOT = BASE_DIR / 'staticfiles'`
-  - Ensure the `staticfiles` directory is writable by the container user (or set location inside the container).
-
-- DB not ready / web fails to connect:
-  - Check DB logs: `docker compose logs db`
-  - Retry migrations manually: `docker compose exec web python manage.py migrate`
+- API health: `http://localhost:3000/health`
+- API docs (Swagger): `http://localhost:3000/docs`

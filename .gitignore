@@ -192,3 +192,7 @@ desktop.ini
 Thumbs.db
 
 # End of file
+.env
+frontend/.env
+.codex
+fronted/.codex
