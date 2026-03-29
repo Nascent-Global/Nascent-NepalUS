@@ -1,3 +1,5 @@
+import '../../core/date_utils.dart';
+
 class PaginationQuery {
   const PaginationQuery({this.limit = 50, this.offset = 0});
 
@@ -17,8 +19,8 @@ class DateRangeQuery {
 
   Map<String, String> toQuery() {
     return {
-      'from': from.toUtc().toIso8601String(),
-      'to': to.toUtc().toIso8601String(),
+      'from': AppDateUtils.dateKeyUtc(from),
+      'to': AppDateUtils.dateKeyUtc(to),
     };
   }
 }
@@ -109,6 +111,8 @@ class ApiDailyEntry {
       'mood': mood,
       'exercise_minutes': exerciseMinutes,
       'include_pomodoro_work': includePomodoroWork,
+      // Backward compatibility for older backend schemas.
+      'was_ok': mood >= 3,
       'created_at': createdAt.toUtc().toIso8601String(),
       'updated_at': updatedAt.toUtc().toIso8601String(),
     };
@@ -118,11 +122,11 @@ class ApiDailyEntry {
     return ApiDailyEntry(
       id: json['id'] as String,
       date: json['date'] as String,
-      sleepHours: (json['sleep_hours'] as num).toDouble(),
-      workHours: (json['work_hours'] as num).toDouble(),
+      sleepHours: (json['sleep_hours'] as num?)?.toDouble() ?? 0,
+      workHours: (json['work_hours'] as num?)?.toDouble() ?? 0,
       mood: (json['mood'] as num).toInt(),
-      exerciseMinutes: (json['exercise_minutes'] as num).toInt(),
-      includePomodoroWork: json['include_pomodoro_work'] as bool,
+      exerciseMinutes: (json['exercise_minutes'] as num?)?.toInt() ?? 0,
+      includePomodoroWork: json['include_pomodoro_work'] as bool? ?? false,
       createdAt: DateTime.parse(json['created_at'] as String).toUtc(),
       updatedAt: DateTime.parse(json['updated_at'] as String).toUtc(),
     );
@@ -261,7 +265,7 @@ class ApiTask {
       deadline: json['deadline'] == null
           ? null
           : DateTime.parse(json['deadline'] as String).toUtc(),
-      priority: (json['priority'] as num).toInt(),
+      priority: (json['priority'] as num?)?.toInt() ?? 1,
       completed: json['completed'] as bool,
       taskType: json['task_type'] as String,
       createdAt: DateTime.parse(json['created_at'] as String).toUtc(),
@@ -329,7 +333,7 @@ class ApiScoreLog {
       id: json['id'] as String,
       scoreId: json['score_id'] as String,
       changeAmount: (json['change_amount'] as num).toInt(),
-      reason: json['reason'] as String,
+      reason: (json['reason'] as String?) ?? '',
       createdAt: DateTime.parse(json['created_at'] as String).toUtc(),
       updatedAt: DateTime.parse(json['updated_at'] as String).toUtc(),
     );
@@ -485,12 +489,13 @@ class ApiAlert {
   }
 
   factory ApiAlert.fromJson(Map<String, dynamic> json) {
+    final createdAt = DateTime.parse(json['created_at'] as String).toUtc();
     return ApiAlert(
       id: json['id'] as String,
-      date: json['date'] as String,
+      date: (json['date'] as String?) ?? AppDateUtils.dateKeyUtc(createdAt),
       type: json['type'] as String,
       message: json['message'] as String,
-      createdAt: DateTime.parse(json['created_at'] as String).toUtc(),
+      createdAt: createdAt,
       updatedAt: DateTime.parse(json['updated_at'] as String).toUtc(),
     );
   }
