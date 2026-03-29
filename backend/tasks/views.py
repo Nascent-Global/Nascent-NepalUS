@@ -1,6 +1,5 @@
-from django.urls import include, path
 from django.utils import timezone
-from rest_framework import filters, permissions, routers, serializers, viewsets
+from rest_framework import filters, permissions, serializers, viewsets
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
