@@ -133,6 +133,28 @@ class BurnoutEngine {
     await _recomputeAndPersist(now);
   }
 
+  Future<void> addRecoveryTaskFromTemplate({
+    required String title,
+    required String reason,
+    int priority = 3,
+    DateTime? deadline,
+  }) async {
+    final now = AppDateUtils.nowUtc();
+    final task = BurnoutTask(
+      id: _uuid.v4(),
+      date: AppDateUtils.dateKeyUtc(now),
+      title: title,
+      deadline: deadline ?? now.add(const Duration(hours: 8)),
+      priority: priority,
+      completed: false,
+      taskType: 'recovery',
+      createdAt: now,
+      synced: false,
+      reason: reason,
+    );
+    await _repository.upsertTask(task);
+  }
+
   Future<void> _recomputeAndPersist(
     DateTime now, {
     bool notifyInsights = false,

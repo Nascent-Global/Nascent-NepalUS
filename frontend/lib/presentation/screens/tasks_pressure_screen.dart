@@ -40,23 +40,6 @@ class _TasksPressureScreenState extends ConsumerState<TasksPressureScreen> {
     ref.read(refreshTickProvider.notifier).bump();
   }
 
-  String get _priorityLabel {
-    switch (_priority) {
-      case 1:
-        return 'Low';
-      case 2:
-        return 'Steady';
-      case 3:
-        return 'Moderate';
-      case 4:
-        return 'High';
-      case 5:
-        return 'Critical';
-      default:
-        return 'Moderate';
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final tasksAsync = ref.watch(todayTasksProvider);
@@ -111,45 +94,75 @@ class _TasksPressureScreenState extends ConsumerState<TasksPressureScreen> {
                   ),
                   const SizedBox(height: 12),
                   Container(
-                    padding: const EdgeInsets.fromLTRB(12, 10, 12, 4),
+                    padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
                     decoration: BoxDecoration(
                       color: Colors.white.withValues(alpha: 0.16),
                       borderRadius: BorderRadius.circular(14),
                     ),
-                    child: Row(
-                      children: <Widget>[
-                        Expanded(
-                          child: Text(
-                            'Priority $_priority • $_priorityLabel',
+                    child: DropdownButtonFormField<int>(
+                      initialValue: _priority,
+                      decoration: InputDecoration(
+                        labelText: 'Priority',
+                        labelStyle: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                        ),
+                        filled: true,
+                        fillColor: Colors.white.withValues(alpha: 0.08),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: Colors.white.withValues(alpha: 0.35),
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Colors.white),
+                        ),
+                      ),
+                      dropdownColor: AppTheme.primaryDark,
+                      iconEnabledColor: Colors.white,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                      ),
+                      items: List<DropdownMenuItem<int>>.generate(5, (index) {
+                        final value = index + 1;
+                        final label = switch (value) {
+                          1 => 'Low',
+                          2 => 'Steady',
+                          3 => 'Moderate',
+                          4 => 'High',
+                          _ => 'Critical',
+                        };
+                        return DropdownMenuItem<int>(
+                          value: value,
+                          child: Text('$value • $label'),
+                        );
+                      }),
+                      selectedItemBuilder: (context) {
+                        return List<Widget>.generate(5, (index) {
+                          final value = index + 1;
+                          final label = switch (value) {
+                            1 => 'Low',
+                            2 => 'Steady',
+                            3 => 'Moderate',
+                            4 => 'High',
+                            _ => 'Critical',
+                          };
+                          return Text(
+                            'Priority $value • $label',
                             style: const TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.w700,
                             ),
-                          ),
-                        ),
-                        Expanded(
-                          child: SliderTheme(
-                            data: SliderTheme.of(context).copyWith(
-                              activeTrackColor: AppTheme.secondary,
-                              inactiveTrackColor: Colors.white.withValues(
-                                alpha: 0.34,
-                              ),
-                              thumbColor: AppTheme.secondaryDark,
-                              overlayColor: AppTheme.secondary.withValues(
-                                alpha: 0.2,
-                              ),
-                            ),
-                            child: Slider(
-                              value: _priority.toDouble(),
-                              min: 1,
-                              max: 5,
-                              divisions: 4,
-                              onChanged: (v) =>
-                                  setState(() => _priority = v.round()),
-                            ),
-                          ),
-                        ),
-                      ],
+                          );
+                        });
+                      },
+                      onChanged: (value) {
+                        if (value == null) return;
+                        setState(() => _priority = value);
+                      },
                     ),
                   ),
                   const SizedBox(height: 8),

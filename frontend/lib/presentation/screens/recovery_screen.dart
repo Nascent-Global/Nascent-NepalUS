@@ -14,6 +14,37 @@ class RecoveryScreen extends ConsumerStatefulWidget {
 }
 
 class _RecoveryScreenState extends ConsumerState<RecoveryScreen> {
+  static const List<_RecoveryTemplate> _templates = <_RecoveryTemplate>[
+    _RecoveryTemplate(
+      title: 'Go for a 15-minute walk',
+      subtitle: 'Light movement to reset your stress baseline.',
+      reason: 'exercise_recovery',
+      priority: 4,
+      icon: Icons.directions_walk_rounded,
+    ),
+    _RecoveryTemplate(
+      title: 'Watch one comfort episode',
+      subtitle: 'Intentional unwind without guilt.',
+      reason: 'break',
+      priority: 3,
+      icon: Icons.movie_creation_outlined,
+    ),
+    _RecoveryTemplate(
+      title: 'No-screen 20-minute reset',
+      subtitle: 'Phone away, hydrate, and breathe slowly.',
+      reason: 'general_recovery',
+      priority: 4,
+      icon: Icons.spa_outlined,
+    ),
+    _RecoveryTemplate(
+      title: 'Sleep prep challenge',
+      subtitle: 'Set lights-off alarm 30 minutes earlier tonight.',
+      reason: 'sleep_recovery',
+      priority: 5,
+      icon: Icons.bedtime_rounded,
+    ),
+  ];
+
   String? _activeBreathingId;
   bool _loading = false;
 
@@ -45,8 +76,25 @@ class _RecoveryScreenState extends ConsumerState<RecoveryScreen> {
     }
   }
 
+  Future<void> _addRecoveryChallenge(_RecoveryTemplate template) async {
+    await ref
+        .read(burnoutEngineProvider)
+        .addRecoveryTaskFromTemplate(
+          title: template.title,
+          reason: template.reason,
+          priority: template.priority,
+        );
+    ref.read(refreshTickProvider.notifier).bump();
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('Added: ${template.title}')));
+  }
+
   @override
   Widget build(BuildContext context) {
+    final tasksAsync = ref.watch(todayTasksProvider);
+
     return ListView(
       padding: const EdgeInsets.only(bottom: 20),
       children: [
@@ -77,7 +125,7 @@ class _RecoveryScreenState extends ConsumerState<RecoveryScreen> {
                   ),
                   const SizedBox(height: 10),
                   Text(
-                    'Use these quick tools to lower burnout in the moment.',
+                    'Quick tools and guided challenges to lower burnout now.',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: Colors.white.withValues(alpha: 0.9),
                       fontWeight: FontWeight.w600,
@@ -186,46 +234,70 @@ class _RecoveryScreenState extends ConsumerState<RecoveryScreen> {
         const SizedBox(height: 12),
         GlassCard(
           variant: GlassCardVariant.secondary,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
+          child: tasksAsync.when(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (error, _) => Text('Failed to load tasks: $error'),
+            data: (tasks) {
+              final recoveryTitles = tasks
+                  .where((task) => task.taskType == 'recovery')
+                  .map((task) => task.title)
+                  .toSet();
+
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(7),
-                    decoration: BoxDecoration(
-                      color: AppTheme.secondaryDark.withValues(alpha: 0.14),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Icon(
-                      Icons.favorite_rounded,
-                      color: AppTheme.secondaryDark,
-                      size: 18,
-                    ),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(7),
+                        decoration: BoxDecoration(
+                          color: AppTheme.secondaryDark.withValues(alpha: 0.14),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(
+                          Icons.rocket_launch_outlined,
+                          color: AppTheme.secondaryDark,
+                          size: 18,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Recovery Challenges',
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(
+                              color: AppTheme.secondaryDark,
+                              fontWeight: FontWeight.w800,
+                            ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(height: 8),
+                  ..._templates.map((template) {
+                    final alreadyAdded = recoveryTitles.contains(
+                      template.title,
+                    );
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: _RecoveryTemplateTile(
+                        template: template,
+                        alreadyAdded: alreadyAdded,
+                        onAdd: alreadyAdded
+                            ? null
+                            : () => _addRecoveryChallenge(template),
+                      ),
+                    );
+                  }),
+                  const SizedBox(height: 4),
                   Text(
-                    'Sustain Your Energy',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: AppTheme.secondaryDark,
-                      fontWeight: FontWeight.w800,
+                    'Added challenges appear in Home -> Today\'s Tasks.',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: AppTheme.secondaryDark.withValues(alpha: 0.82),
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ],
-              ),
-              const SizedBox(height: 8),
-              _RecoveryTipTile(
-                icon: Icons.free_breakfast_rounded,
-                title: 'Micro break suggestion',
-                subtitle: 'Take a 5-minute break after your current task.',
-              ),
-              const SizedBox(height: 8),
-              _RecoveryTipTile(
-                icon: Icons.nightlight_round,
-                title: 'Sleep protection',
-                subtitle: 'Set a fixed lights-off time and avoid late tasks.',
-              ),
-            ],
+              );
+            },
           ),
         ),
       ],
@@ -253,76 +325,88 @@ class _HeroAccent extends StatelessWidget {
   }
 }
 
-class _RecoveryTipTile extends StatelessWidget {
-  const _RecoveryTipTile({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
+class _RecoveryTemplateTile extends StatelessWidget {
+  const _RecoveryTemplateTile({
+    required this.template,
+    required this.alreadyAdded,
+    required this.onAdd,
   });
 
-  final IconData icon;
-  final String title;
-  final String subtitle;
+  final _RecoveryTemplate template;
+  final bool alreadyAdded;
+  final VoidCallback? onAdd;
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        Positioned(
-          right: 8,
-          top: -3,
-          child: Icon(
-            Icons.auto_awesome_rounded,
-            size: 14,
-            color: AppTheme.warning.withValues(alpha: 0.8),
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.78),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            margin: const EdgeInsets.only(top: 1),
+            padding: const EdgeInsets.all(7),
+            decoration: BoxDecoration(
+              color: AppTheme.secondary.withValues(alpha: 0.3),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(template.icon, color: AppTheme.secondaryDark, size: 19),
           ),
-        ),
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.75),
-            borderRadius: BorderRadius.circular(14),
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                margin: const EdgeInsets.only(top: 1),
-                padding: const EdgeInsets.all(7),
-                decoration: BoxDecoration(
-                  color: AppTheme.secondary.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(10),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  template.title,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    color: AppTheme.ink,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
-                child: Icon(icon, color: AppTheme.secondaryDark, size: 19),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        color: AppTheme.ink,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      subtitle,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppTheme.ink.withValues(alpha: 0.78),
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
+                const SizedBox(height: 3),
+                Text(
+                  template.subtitle,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: AppTheme.ink.withValues(alpha: 0.78),
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-      ],
+          IconButton(
+            onPressed: onAdd,
+            icon: Icon(
+              alreadyAdded ? Icons.check_circle : Icons.add_circle_outline,
+              color: alreadyAdded
+                  ? AppTheme.secondaryDark
+                  : AppTheme.primaryDark,
+            ),
+            tooltip: alreadyAdded ? 'Already added' : 'Add to today tasks',
+          ),
+        ],
+      ),
     );
   }
+}
+
+class _RecoveryTemplate {
+  const _RecoveryTemplate({
+    required this.title,
+    required this.subtitle,
+    required this.reason,
+    required this.priority,
+    required this.icon,
+  });
+
+  final String title;
+  final String subtitle;
+  final String reason;
+  final int priority;
+  final IconData icon;
 }

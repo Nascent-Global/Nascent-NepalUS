@@ -18,18 +18,17 @@ class FocusScreen extends ConsumerStatefulWidget {
 }
 
 class _FocusScreenState extends ConsumerState<FocusScreen> {
-  static const List<String> _labelPresets = <String>[
+  static const List<String> _defaultLabelPresets = <String>[
     'Deep Work',
     'Study',
     'Coding',
     'Writing',
     'Reading',
   ];
-
   static const List<int> _durationPresets = <int>[15, 25, 45, 60];
+  static const String _createLabelSentinel = '__create_new_label__';
 
-  final TextEditingController _customLabelController = TextEditingController();
-
+  late List<String> _labelOptions;
   PomodoroSession? _activeSession;
   List<PomodoroSession> _todaySessions = const <PomodoroSession>[];
   Timer? _ticker;
@@ -38,18 +37,18 @@ class _FocusScreenState extends ConsumerState<FocusScreen> {
   bool _loading = true;
   bool _working = false;
   int _selectedDuration = AppConstants.defaultPomodoroMinutes;
-  String _selectedLabel = _labelPresets.first;
+  String _selectedLabel = _defaultLabelPresets.first;
 
   @override
   void initState() {
     super.initState();
+    _labelOptions = List<String>.from(_defaultLabelPresets);
     unawaited(_loadState());
   }
 
   @override
   void dispose() {
     _ticker?.cancel();
-    _customLabelController.dispose();
     super.dispose();
   }
 
@@ -101,8 +100,6 @@ class _FocusScreenState extends ConsumerState<FocusScreen> {
   }
 
   String? _resolvedTaskLabel() {
-    final custom = _customLabelController.text.trim();
-    if (custom.isNotEmpty) return custom;
     final selected = _selectedLabel.trim();
     return selected.isEmpty ? null : selected;
   }
@@ -149,6 +146,116 @@ class _FocusScreenState extends ConsumerState<FocusScreen> {
     }
   }
 
+  Future<void> _onLabelSelected(String? value) async {
+    if (value == null) return;
+    if (value == _createLabelSentinel) {
+      await _createNewLabel();
+      return;
+    }
+    setState(() => _selectedLabel = value);
+  }
+
+  Future<void> _createNewLabel() async {
+    final controller = TextEditingController();
+    final label = await showDialog<String>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Create focus label'),
+          content: TextField(
+            controller: controller,
+            autofocus: true,
+            decoration: const InputDecoration(hintText: 'e.g. API design'),
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () =>
+                  Navigator.of(context).pop(controller.text.trim()),
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
+
+    controller.dispose();
+
+    final next = label?.trim() ?? '';
+    if (next.isEmpty) return;
+    if (!_labelOptions.contains(next)) {
+      setState(() => _labelOptions = <String>[..._labelOptions, next]);
+    }
+    setState(() => _selectedLabel = next);
+  }
+
+  Future<void> _openDurationSettingsDialog() async {
+    final selected = await showDialog<int>(
+      context: context,
+      builder: (context) {
+        var pending = _selectedDuration;
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Text('Focus duration presets'),
+              content: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: _durationPresets.map((minutes) {
+                  return ChoiceChip(
+                    label: Text('$minutes min'),
+                    selected: pending == minutes,
+                    onSelected: (_) => setDialogState(() => pending = minutes),
+                    selectedColor: AppTheme.secondary,
+                    labelStyle: TextStyle(
+                      color: pending == minutes
+                          ? AppTheme.secondaryDark
+                          : AppTheme.ink.withValues(alpha: 0.82),
+                      fontWeight: FontWeight.w700,
+                    ),
+                  );
+                }).toList(),
+              ),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Cancel'),
+                ),
+                FilledButton(
+                  onPressed: () => Navigator.of(context).pop(pending),
+                  child: const Text('Apply'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+    if (selected == null) return;
+    setState(() => _selectedDuration = selected);
+  }
+
+  Future<void> _openSessionLogDialog() async {
+    await showDialog<void>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Today\'s Focus Log'),
+          content: SizedBox(width: 360, child: _buildSessionLogList()),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Close'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   double get _activeProgress {
     final active = _activeSession;
     if (active == null) return 0;
@@ -193,118 +300,6 @@ class _FocusScreenState extends ConsumerState<FocusScreen> {
     return math.max(1, mins);
   }
 
-  Widget _buildLabelSection() {
-    return GlassCard(
-      variant: GlassCardVariant.secondary,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          const Positioned(
-            top: -6,
-            right: -4,
-            child: _CardSpark(icon: Icons.auto_stories_rounded),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              const Text(
-                'What are you focusing on?',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w800,
-                  color: AppTheme.ink,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: _labelPresets.map((label) {
-                  return ChoiceChip(
-                    label: Text(label),
-                    selected:
-                        _selectedLabel == label &&
-                        _customLabelController.text.trim().isEmpty,
-                    onSelected: _activeSession != null
-                        ? null
-                        : (_) {
-                            setState(() {
-                              _selectedLabel = label;
-                              _customLabelController.clear();
-                            });
-                          },
-                    selectedColor: AppTheme.secondary,
-                    labelStyle: TextStyle(
-                      color:
-                          (_selectedLabel == label &&
-                              _customLabelController.text.trim().isEmpty)
-                          ? AppTheme.secondaryDark
-                          : AppTheme.ink.withValues(alpha: 0.8),
-                      fontWeight: FontWeight.w700,
-                    ),
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 10),
-              TextField(
-                controller: _customLabelController,
-                enabled: _activeSession == null,
-                onChanged: (_) => setState(() {}),
-                decoration: InputDecoration(
-                  hintText: 'Or write custom label (e.g. System design)',
-                  filled: true,
-                  fillColor: Colors.white.withValues(alpha: 0.9),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
-                    borderSide: BorderSide(
-                      color: AppTheme.primary.withValues(alpha: 0.24),
-                    ),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
-                    borderSide: BorderSide(
-                      color: AppTheme.primary.withValues(alpha: 0.24),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 14),
-              Text(
-                'Duration',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: AppTheme.ink.withValues(alpha: 0.82),
-                ),
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: _durationPresets.map((minutes) {
-                  return ChoiceChip(
-                    label: Text('$minutes min'),
-                    selected: _selectedDuration == minutes,
-                    onSelected: _activeSession != null
-                        ? null
-                        : (_) => setState(() => _selectedDuration = minutes),
-                    selectedColor: AppTheme.secondary,
-                    labelStyle: TextStyle(
-                      color: _selectedDuration == minutes
-                          ? AppTheme.secondaryDark
-                          : AppTheme.ink.withValues(alpha: 0.8),
-                      fontWeight: FontWeight.w700,
-                    ),
-                  );
-                }).toList(),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildFocusTimerCard() {
     final active = _activeSession;
     final isActive = active != null;
@@ -316,127 +311,138 @@ class _FocusScreenState extends ConsumerState<FocusScreen> {
     return GlassCard(
       variant: GlassCardVariant.primary,
       padding: const EdgeInsets.all(18),
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          const Positioned(
-            top: -6,
-            right: -4,
-            child: _CardSpark(icon: Icons.rocket_launch_rounded),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Row(
             children: <Widget>[
-              const Text(
-                'Focus Session',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 22,
-                  fontWeight: FontWeight.w800,
+              const Expanded(
+                child: Text(
+                  'Focus Session',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 22,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
               ),
-              const SizedBox(height: 6),
-              Text(
-                isActive
-                    ? effectiveLabel
-                    : 'Pick a label and start your next sprint.',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
+              IconButton(
+                onPressed: _openDurationSettingsDialog,
+                style: IconButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  backgroundColor: Colors.white.withValues(alpha: 0.14),
+                ),
+                icon: const Icon(Icons.tune_rounded),
+                tooltip: 'Duration settings',
+              ),
+              const SizedBox(width: 6),
+              IconButton(
+                onPressed: _openSessionLogDialog,
+                style: IconButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  backgroundColor: Colors.white.withValues(alpha: 0.14),
+                ),
+                icon: const Icon(Icons.history_rounded),
+                tooltip: 'View log',
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            isActive ? effectiveLabel : 'Pick a label and start your sprint.',
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 18),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 14),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(18),
+            ),
+            child: Column(
+              children: <Widget>[
+                Text(
+                  isActive
+                      ? _formatClock(_remaining)
+                      : '${_selectedDuration.toString().padLeft(2, '0')}:00',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 42,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  isActive
+                      ? (_remaining.inSeconds == 0
+                            ? 'Time is up. Mark complete when done.'
+                            : 'Stay on one thing until the timer ends.')
+                      : 'Ready to enter deep focus mode.',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                LinearProgressIndicator(
+                  value: isActive ? _activeProgress : 0,
+                  minHeight: 8,
+                  borderRadius: BorderRadius.circular(8),
+                  backgroundColor: Colors.white.withValues(alpha: 0.4),
+                  valueColor: const AlwaysStoppedAnimation<Color>(
+                    AppTheme.secondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: <Widget>[
+              Expanded(
+                child: FilledButton.icon(
+                  onPressed: _working || isActive ? null : _startPomodoro,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppTheme.primaryDark,
+                    foregroundColor: Colors.white,
+                  ),
+                  icon: const Icon(Icons.play_arrow_rounded),
+                  label: const Text('Start'),
                 ),
               ),
-              const SizedBox(height: 18),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(
-                  vertical: 16,
-                  horizontal: 14,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(18),
-                ),
-                child: Column(
-                  children: <Widget>[
-                    Text(
-                      isActive
-                          ? _formatClock(_remaining)
-                          : '${_selectedDuration.toString().padLeft(2, '0')}:00',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 42,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 1.2,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      isActive
-                          ? (_remaining.inSeconds == 0
-                                ? 'Time is up. Mark complete when done.'
-                                : 'Stay on one thing until the timer ends.')
-                          : 'Ready to enter deep focus mode.',
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    LinearProgressIndicator(
-                      value: isActive ? _activeProgress : 0,
-                      minHeight: 8,
-                      borderRadius: BorderRadius.circular(8),
-                      backgroundColor: Colors.white.withValues(alpha: 0.4),
-                      valueColor: const AlwaysStoppedAnimation<Color>(
-                        AppTheme.secondary,
-                      ),
-                    ),
-                  ],
+              const SizedBox(width: 10),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: _working || !isActive
+                      ? null
+                      : () => _finishPomodoro(completed: true),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    side: const BorderSide(color: Colors.white, width: 1.2),
+                  ),
+                  icon: const Icon(Icons.check_rounded),
+                  label: const Text('Complete'),
                 ),
               ),
-              const SizedBox(height: 16),
-              Row(
-                children: <Widget>[
-                  Expanded(
-                    child: FilledButton.icon(
-                      onPressed: _working || isActive ? null : _startPomodoro,
-                      style: FilledButton.styleFrom(
-                        backgroundColor: AppTheme.primaryDark,
-                        foregroundColor: Colors.white,
-                      ),
-                      icon: const Icon(Icons.play_arrow_rounded),
-                      label: const Text('Start'),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: _working || !isActive
-                          ? null
-                          : () => _finishPomodoro(completed: true),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.white,
-                        side: const BorderSide(color: Colors.white, width: 1.2),
-                      ),
-                      icon: const Icon(Icons.check_rounded),
-                      label: const Text('Complete'),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  IconButton.filledTonal(
-                    onPressed: _working || !isActive
-                        ? null
-                        : () => _finishPomodoro(completed: false),
-                    style: IconButton.styleFrom(
-                      backgroundColor: Colors.white.withValues(alpha: 0.24),
-                      foregroundColor: Colors.white,
-                    ),
-                    icon: const Icon(Icons.close_rounded),
-                  ),
-                ],
+              const SizedBox(width: 10),
+              IconButton.filledTonal(
+                onPressed: _working || !isActive
+                    ? null
+                    : () => _finishPomodoro(completed: false),
+                style: IconButton.styleFrom(
+                  backgroundColor: Colors.white.withValues(alpha: 0.24),
+                  foregroundColor: Colors.white,
+                ),
+                icon: const Icon(Icons.close_rounded),
+                tooltip: 'Stop',
               ),
             ],
           ),
@@ -445,138 +451,159 @@ class _FocusScreenState extends ConsumerState<FocusScreen> {
     );
   }
 
-  Widget _buildSessionLogCard() {
-    final sessions = _todaySessions;
+  Widget _buildControlsCard() {
     return GlassCard(
-      variant: GlassCardVariant.frosted,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Positioned(
-            top: -2,
-            right: 2,
-            child: Icon(
-              Icons.auto_awesome_rounded,
-              size: 16,
-              color: AppTheme.warning.withValues(alpha: 0.78),
+      variant: GlassCardVariant.secondary,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          const Text(
+            'Session Setup',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+              color: AppTheme.ink,
             ),
           ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(7),
-                    decoration: BoxDecoration(
-                      color: AppTheme.primary.withValues(alpha: 0.14),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Icon(
-                      Icons.event_note_rounded,
-                      size: 18,
-                      color: AppTheme.primaryDark,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  const Text(
-                    'Today\'s Focus Log',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
-                      color: AppTheme.ink,
-                    ),
-                  ),
-                ],
+          const SizedBox(height: 10),
+          DropdownButtonFormField<String>(
+            initialValue: _labelOptions.contains(_selectedLabel)
+                ? _selectedLabel
+                : null,
+            isExpanded: true,
+            decoration: InputDecoration(
+              labelText: 'Label',
+              prefixIcon: const Icon(Icons.local_offer_outlined),
+              filled: true,
+              fillColor: Colors.white.withValues(alpha: 0.9),
+            ),
+            items: <DropdownMenuItem<String>>[
+              ..._labelOptions.map(
+                (label) =>
+                    DropdownMenuItem<String>(value: label, child: Text(label)),
               ),
-              const SizedBox(height: 10),
-              if (sessions.isEmpty)
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  child: Text(
-                    'No sessions yet. Start one to build your streak.',
-                    style: TextStyle(
-                      color: AppTheme.ink.withValues(alpha: 0.72),
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                )
-              else
-                ...sessions.take(8).map((session) {
-                  final isRunning = session.endTime == null;
-                  final label = (session.taskLabel ?? '').trim();
-                  final title = label.isEmpty ? 'Unlabeled focus' : label;
-                  final status = isRunning
-                      ? 'Running'
-                      : (session.completed ? 'Completed' : 'Stopped');
-                  final statusColor = isRunning
-                      ? AppTheme.primary
-                      : (session.completed
-                            ? AppTheme.secondaryDark
-                            : AppTheme.warning);
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 10),
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.9),
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(
-                        color: AppTheme.primary.withValues(alpha: 0.24),
-                      ),
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Container(
-                          width: 5,
-                          height: 48,
-                          decoration: BoxDecoration(
-                            color: statusColor,
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: <Widget>[
-                              Text(
-                                title,
-                                style: const TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w800,
-                                  color: AppTheme.ink,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                '${_sessionMinutes(session)} min • ${_sessionSummary(session)}',
-                                style: TextStyle(
-                                  fontSize: 12.5,
-                                  color: AppTheme.ink.withValues(alpha: 0.72),
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          status,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: statusColor,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }),
+              const DropdownMenuItem<String>(
+                value: _createLabelSentinel,
+                child: Text('+ Create new label'),
+              ),
             ],
+            onChanged: _activeSession != null ? null : _onLabelSelected,
+          ),
+          const SizedBox(height: 10),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: AppTheme.secondary.withValues(alpha: 0.16),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: AppTheme.secondary.withValues(alpha: 0.32),
+              ),
+            ),
+            child: Text(
+              'Duration: $_selectedDuration min',
+              style: const TextStyle(
+                color: AppTheme.secondaryDark,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildSessionLogList() {
+    final sessions = _todaySessions;
+    if (sessions.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Text(
+          'No sessions yet. Start one to build your streak.',
+          style: TextStyle(
+            color: AppTheme.ink.withValues(alpha: 0.72),
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      );
+    }
+
+    return SizedBox(
+      height: 320,
+      child: ListView.builder(
+        itemCount: math.min(12, sessions.length),
+        itemBuilder: (context, index) {
+          final session = sessions[index];
+          final isRunning = session.endTime == null;
+          final label = (session.taskLabel ?? '').trim();
+          final title = label.isEmpty ? 'Unlabeled focus' : label;
+          final status = isRunning
+              ? 'Running'
+              : (session.completed ? 'Completed' : 'Stopped');
+          final statusColor = isRunning
+              ? AppTheme.primary
+              : (session.completed ? AppTheme.secondaryDark : AppTheme.warning);
+
+          return Container(
+            margin: const EdgeInsets.only(bottom: 10),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.9),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: AppTheme.primary.withValues(alpha: 0.24),
+              ),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Container(
+                  width: 5,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: statusColor,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
+                          color: AppTheme.ink,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${_sessionMinutes(session)} min • ${_sessionSummary(session)}',
+                        style: TextStyle(
+                          fontSize: 12.5,
+                          color: AppTheme.ink.withValues(alpha: 0.72),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  status,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: statusColor,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
@@ -594,32 +621,8 @@ class _FocusScreenState extends ConsumerState<FocusScreen> {
         children: <Widget>[
           _buildFocusTimerCard(),
           const SizedBox(height: 14),
-          _buildLabelSection(),
-          const SizedBox(height: 14),
-          _buildSessionLogCard(),
+          _buildControlsCard(),
         ],
-      ),
-    );
-  }
-}
-
-class _CardSpark extends StatelessWidget {
-  const _CardSpark({required this.icon});
-
-  final IconData icon;
-
-  @override
-  Widget build(BuildContext context) {
-    return IgnorePointer(
-      child: Container(
-        width: 58,
-        height: 58,
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.16),
-          shape: BoxShape.circle,
-          border: Border.all(color: Colors.white.withValues(alpha: 0.34)),
-        ),
-        child: Icon(icon, color: Colors.white, size: 24),
       ),
     );
   }
