@@ -23,7 +23,7 @@ urlpatterns = [
     path("pomodoro/", include("pomodoro.urls")),
     path("tasks/", include("tasks.urls")),
     path("users/", include("users.urls")),
-    # path("alerts/", include("alerts.urls")),
+    path("alerts/", include("alerts.urls")),
     # path("analytics/", include("analytics.urls")),
     path("breathing/", include("breathing.urls")),
 ]
