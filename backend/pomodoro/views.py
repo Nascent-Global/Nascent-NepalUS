@@ -34,8 +34,6 @@ class PomodoroSessionViewSet(viewsets.ModelViewSet):
 
     queryset = PomodoroSession.objects.all().order_by("-start_time")
     serializer_class = PomodoroSessionSerializer
-    # Allow open access for hackathon MVP; change to IsAuthenticated in production
-    permission_classes = [permissions.AllowAny]
     pagination_class = StandardResultsSetPagination
     filter_backends = [filters.OrderingFilter, filters.SearchFilter]
     search_fields = []

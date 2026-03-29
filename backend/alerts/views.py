@@ -29,7 +29,6 @@ class AlertViewSet(viewsets.ModelViewSet):
 
     queryset = Alert.objects.all().order_by("-created_at")
     serializer_class = AlertSerializer
-    permission_classes = [permissions.AllowAny]  # open access for MVP
     pagination_class = StandardResultsSetPagination
     filter_backends = [filters.OrderingFilter, filters.SearchFilter]
     search_fields = ["type", "message"]

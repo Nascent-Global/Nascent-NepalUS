@@ -28,9 +28,10 @@ class UserProfileViewSet(viewsets.ModelViewSet):
 
     queryset = UserProfile.objects.all().order_by("-created_at")
     serializer_class = UserProfileSerializer
-    permission_classes = [
-        permissions.AllowAny
-    ]  # Open access for MVP; change to IsAuthenticated if needed
+    def get_permissions(self):
+        if self.action == "create":
+            return [permissions.AllowAny()]
+        return [permissions.IsAuthenticated()]
     pagination_class = StandardResultsSetPagination
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ["username"]

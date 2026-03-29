@@ -1,4 +1,5 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, permissions
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
@@ -6,10 +7,18 @@ from .models import BreathingSession
 from .serializers import BreathingSessionSerializer
 
 
+class StandardResultsSetPagination(PageNumberPagination):
+    page_size = 25
+    page_size_query_param = "page_size"
+    max_page_size = 200
+
+
 # ViewSet (basic CRUD + recent)
 class BreathingSessionViewSet(viewsets.ModelViewSet):
     queryset = BreathingSession.objects.all().order_by("-started_at")
     serializer_class = BreathingSessionSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
         qs = super().get_queryset()

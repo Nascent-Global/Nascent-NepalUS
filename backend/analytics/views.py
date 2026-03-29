@@ -32,7 +32,7 @@ class DailyEntryViewSet(viewsets.ModelViewSet):
 
     queryset = DailyEntry.objects.all().order_by("-date", "-created_at")
     serializer_class = DailyEntrySerializer
-    permission_classes = [permissions.AllowAny]
+
     pagination_class = StandardResultsSetPagination
     filter_backends = [filters.OrderingFilter, filters.SearchFilter]
     ordering_fields = ["date", "created_at"]
@@ -63,7 +63,7 @@ class BurnoutScoreViewSet(viewsets.ModelViewSet):
 
     queryset = BurnoutScore.objects.all().order_by("-created_at")
     serializer_class = BurnoutScoreSerializer
-    permission_classes = [permissions.AllowAny]
+
     pagination_class = StandardResultsSetPagination
     filter_backends = [filters.OrderingFilter, filters.SearchFilter]
     ordering_fields = ["date", "created_at", "score"]
@@ -103,7 +103,7 @@ class BurnoutCauseViewSet(viewsets.ModelViewSet):
 
     queryset = BurnoutCause.objects.all()
     serializer_class = BurnoutCauseSerializer
-    permission_classes = [permissions.AllowAny]
+
     pagination_class = StandardResultsSetPagination
     filter_backends = [filters.OrderingFilter, filters.SearchFilter]
     ordering_fields = ["score", "id"]
@@ -125,7 +125,7 @@ class ScoreLogViewSet(viewsets.ModelViewSet):
 
     queryset = ScoreLog.objects.all().order_by("-created_at")
     serializer_class = ScoreLogSerializer
-    permission_classes = [permissions.AllowAny]
+
     pagination_class = StandardResultsSetPagination
     filter_backends = [filters.OrderingFilter, filters.SearchFilter]
     ordering_fields = ["created_at", "change_amount"]

@@ -32,7 +32,6 @@ class TaskViewSet(viewsets.ModelViewSet):
 
     queryset = Task.objects.all().order_by("-date", "-created_at")
     serializer_class = TaskSerializer
-    permission_classes = [permissions.AllowAny]
     pagination_class = StandardResultsSetPagination
     filter_backends = [filters.OrderingFilter, filters.SearchFilter]
     search_fields = ["title"]
