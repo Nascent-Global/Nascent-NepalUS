@@ -4,6 +4,8 @@ class ApiPaths {
   static const userProfile = '/user-profile';
   static const authRegister = '/auth/register';
   static const authLogin = '/auth/login';
+  static const authRefresh = '/auth/refresh';
+  static const authLogout = '/auth/logout';
   static const authMe = '/auth/me';
   static const dailyEntries = '/daily-entries';
   static const burnoutScores = '/burnout-scores';

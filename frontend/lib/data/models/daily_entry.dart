@@ -7,7 +7,8 @@ class DailyEntry {
     required this.sleepHours,
     required this.workHours,
     required this.mood,
-    required this.wasOk,
+    required this.exerciseMinutes,
+    required this.includePomodoroWork,
     required this.createdAt,
     required this.synced,
   });
@@ -17,7 +18,8 @@ class DailyEntry {
   final double sleepHours;
   final double workHours;
   final int mood;
-  final bool wasOk;
+  final int exerciseMinutes;
+  final bool includePomodoroWork;
   final DateTime createdAt;
   final bool synced;
 
@@ -28,7 +30,8 @@ class DailyEntry {
       'sleep_hours': sleepHours,
       'work_hours': workHours,
       'mood': mood,
-      'was_ok': wasOk ? 1 : 0,
+      'exercise_minutes': exerciseMinutes,
+      'include_pomodoro_work': includePomodoroWork ? 1 : 0,
       'created_at': AppDateUtils.toUtcIso(createdAt),
       'synced': synced ? 1 : 0,
     };
@@ -43,7 +46,9 @@ class DailyEntry {
       sleepHours: (map['sleep_hours'] as num?)?.toDouble() ?? 0,
       workHours: (map['work_hours'] as num?)?.toDouble() ?? 0,
       mood: map['mood'] as int? ?? 3,
-      wasOk: (map['was_ok'] as int? ?? 0) == 1,
+      exerciseMinutes: (map['exercise_minutes'] as num?)?.toInt() ?? 0,
+      includePomodoroWork:
+          ((map['include_pomodoro_work'] as num?)?.toInt() ?? 0) == 1,
       createdAt: AppDateUtils.fromUtcIso(map['created_at'] as String),
       synced: (map['synced'] as int? ?? 0) == 1,
     );

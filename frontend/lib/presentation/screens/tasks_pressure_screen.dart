@@ -28,11 +28,7 @@ class _TasksPressureScreenState extends ConsumerState<TasksPressureScreen> {
 
     await ref
         .read(burnoutEngineProvider)
-        .addUserTask(
-          title: title,
-          priority: _priority,
-          deadline: DateTime.now().toUtc().add(const Duration(days: 1)),
-        );
+        .addUserTask(title: title, priority: _priority, deadline: null);
 
     _titleController.clear();
     ref.read(refreshTickProvider.notifier).bump();
@@ -53,10 +49,7 @@ class _TasksPressureScreenState extends ConsumerState<TasksPressureScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Add Pressure Task',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
+              Text('Add Task', style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: 8),
               TextField(
                 controller: _titleController,

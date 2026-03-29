@@ -2,8 +2,7 @@ enum BurnoutCauseType {
   lowSleep,
   highWorkload,
   lowMood,
-  negativeCheckIn,
-  deadlinePressure,
+  lowExercise,
   risingTrend,
 }
 
@@ -16,10 +15,8 @@ extension BurnoutCauseTypeX on BurnoutCauseType {
         return 'HIGH_WORKLOAD';
       case BurnoutCauseType.lowMood:
         return 'LOW_MOOD';
-      case BurnoutCauseType.negativeCheckIn:
-        return 'NEGATIVE_CHECKIN';
-      case BurnoutCauseType.deadlinePressure:
-        return 'DEADLINE_PRESSURE';
+      case BurnoutCauseType.lowExercise:
+        return 'LOW_EXERCISE';
       case BurnoutCauseType.risingTrend:
         return 'RISING_TREND';
     }
@@ -33,10 +30,8 @@ extension BurnoutCauseTypeX on BurnoutCauseType {
         return 'Workload is high';
       case BurnoutCauseType.lowMood:
         return 'Mood has dropped';
-      case BurnoutCauseType.negativeCheckIn:
-        return 'Self check-in was not okay';
-      case BurnoutCauseType.deadlinePressure:
-        return 'Deadline pressure is building';
+      case BurnoutCauseType.lowExercise:
+        return 'Exercise is too low';
       case BurnoutCauseType.risingTrend:
         return 'Burnout trend is rising';
     }

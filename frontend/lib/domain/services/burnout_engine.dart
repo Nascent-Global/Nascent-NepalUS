@@ -20,7 +20,8 @@ class BurnoutEngine {
     required double sleepHours,
     required double workHours,
     required int mood,
-    required bool wasOk,
+    required int exerciseMinutes,
+    required bool includePomodoroWork,
   }) async {
     final now = AppDateUtils.nowUtc();
     final entry = DailyEntry(
@@ -29,7 +30,8 @@ class BurnoutEngine {
       sleepHours: sleepHours,
       workHours: workHours,
       mood: mood,
-      wasOk: wasOk,
+      exerciseMinutes: exerciseMinutes,
+      includePomodoroWork: includePomodoroWork,
       createdAt: now,
       synced: false,
     );
@@ -131,9 +133,9 @@ class BurnoutEngine {
     final entry = await _repository.getLatestDailyEntryForDate(now);
     if (entry == null) return;
 
-    final tasks = await _repository.getTasksByDate(now);
-    final causes = _detectCauses(entry, tasks);
-    final score = _computeScore(entry, tasks);
+    final effectiveWorkHours = await _resolveEffectiveWorkHours(entry, now);
+    final causes = _detectCauses(entry, effectiveWorkHours);
+    final score = _computeScore(entry, effectiveWorkHours);
     final classification = _classify(score);
 
     final scoreId = await _repository.insertScoreSnapshot(
@@ -199,7 +201,7 @@ class BurnoutEngine {
     }
   }
 
-  int _computeScore(DailyEntry entry, List<BurnoutTask> tasks) {
+  int _computeScore(DailyEntry entry, double effectiveWorkHours) {
     var score = 0;
 
     if (entry.sleepHours < 5) {
@@ -212,63 +214,46 @@ class BurnoutEngine {
       score += 4;
     }
 
-    if (entry.workHours > 10) {
+    if (effectiveWorkHours > 10) {
       score += 25;
-    } else if (entry.workHours > 8) {
+    } else if (effectiveWorkHours > 8) {
       score += 16;
-    } else if (entry.workHours > 6) {
+    } else if (effectiveWorkHours > 6) {
       score += 8;
     }
 
     score += ((5 - entry.mood).clamp(0, 4) * 7).toInt();
 
-    if (!entry.wasOk) {
+    if (entry.exerciseMinutes < 10) {
       score += 10;
+    } else if (entry.exerciseMinutes < 20) {
+      score += 6;
+    } else if (entry.exerciseMinutes < 30) {
+      score += 3;
+    } else if (entry.exerciseMinutes >= 45) {
+      score -= 4;
     }
-
-    final now = AppDateUtils.nowUtc();
-    final pendingTasks = tasks.where((task) => !task.completed).toList();
-    final deadlinePressure = pendingTasks.fold<int>(0, (sum, task) {
-      final priority = task.priority.clamp(1, 5);
-      final deadline = task.deadline;
-      if (deadline == null) return sum + priority;
-      final days = deadline.difference(now).inDays;
-      if (days <= 0) return sum + (priority * 4);
-      if (days <= 1) return sum + (priority * 3);
-      if (days <= 2) return sum + (priority * 2);
-      return sum + priority;
-    });
-
-    score += deadlinePressure.clamp(0, 30);
 
     return score.clamp(0, 100);
   }
 
   List<BurnoutCauseType> _detectCauses(
     DailyEntry entry,
-    List<BurnoutTask> tasks,
+    double effectiveWorkHours,
   ) {
     final causes = <BurnoutCauseType>[];
 
     if (entry.sleepHours < AppConstants.lowSleepHours) {
       causes.add(BurnoutCauseType.lowSleep);
     }
-    if (entry.workHours > AppConstants.highWorkHours) {
+    if (effectiveWorkHours > AppConstants.highWorkHours) {
       causes.add(BurnoutCauseType.highWorkload);
     }
     if (entry.mood <= 2) {
       causes.add(BurnoutCauseType.lowMood);
     }
-    if (!entry.wasOk) {
-      causes.add(BurnoutCauseType.negativeCheckIn);
-    }
-
-    final deadlineHeavy = tasks.any((task) {
-      if (task.completed || task.deadline == null) return false;
-      return task.deadline!.difference(AppDateUtils.nowUtc()).inDays <= 2;
-    });
-    if (deadlineHeavy) {
-      causes.add(BurnoutCauseType.deadlinePressure);
+    if (entry.exerciseMinutes < 20) {
+      causes.add(BurnoutCauseType.lowExercise);
     }
 
     return causes;
@@ -300,17 +285,11 @@ class BurnoutEngine {
             reason: 'break',
             priority: 4,
           ));
-        case BurnoutCauseType.negativeCheckIn:
+        case BurnoutCauseType.lowExercise:
           templates.add((
-            title: 'Do a 5-minute breathing reset',
-            reason: 'breathing',
+            title: 'Do at least 20 minutes of light exercise',
+            reason: 'exercise_recovery',
             priority: 4,
-          ));
-        case BurnoutCauseType.deadlinePressure:
-          templates.add((
-            title: 'Use a focused 25-minute sprint now',
-            reason: 'focus_reset',
-            priority: 5,
           ));
         case BurnoutCauseType.risingTrend:
           templates.add((
@@ -343,6 +322,29 @@ class BurnoutEngine {
           ),
         )
         .toList();
+  }
+
+  Future<double> _resolveEffectiveWorkHours(
+    DailyEntry entry,
+    DateTime date,
+  ) async {
+    if (!entry.includePomodoroWork) {
+      return entry.workHours;
+    }
+
+    final sessions = await _repository.getPomodoroByDate(date);
+    final completedMinutes = sessions
+        .where((session) => session.completed)
+        .fold<int>(0, (sum, session) {
+          if (session.duration > 0) {
+            return sum + session.duration;
+          }
+          if (session.endTime == null) return sum;
+          return sum + session.endTime!.difference(session.startTime).inMinutes;
+        });
+
+    final pomodoroHours = completedMinutes / 60.0;
+    return entry.workHours + pomodoroHours;
   }
 
   String _classify(int score) {

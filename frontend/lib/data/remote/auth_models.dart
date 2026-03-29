@@ -31,20 +31,30 @@ class AuthUser {
 }
 
 class AuthSession {
-  const AuthSession({required this.token, required this.user});
+  const AuthSession({
+    required this.token,
+    required this.refreshToken,
+    required this.user,
+  });
 
   final String token;
+  final String refreshToken;
   final AuthUser user;
 
   factory AuthSession.fromJson(Map<String, dynamic> json) {
     return AuthSession(
       token: (json['token'] ?? json['access_token']) as String,
+      refreshToken: (json['refresh_token'] ?? json['refreshToken']) as String,
       user: AuthUser.fromJson(json['user'] as Map<String, dynamic>),
     );
   }
 
   Map<String, dynamic> toJson() {
-    return {'token': token, 'user': user.toJson()};
+    return {
+      'token': token,
+      'refresh_token': refreshToken,
+      'user': user.toJson(),
+    };
   }
 }
 

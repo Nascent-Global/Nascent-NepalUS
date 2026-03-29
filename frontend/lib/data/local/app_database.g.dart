@@ -464,17 +464,31 @@ class $DailyEntriesTable extends DailyEntries
     requiredDuringInsert: true,
     $customConstraints: 'NOT NULL CHECK (mood BETWEEN 1 AND 5)',
   );
-  static const VerificationMeta _wasOkMeta = const VerificationMeta('wasOk');
+  static const VerificationMeta _exerciseMinutesMeta = const VerificationMeta(
+    'exerciseMinutes',
+  );
   @override
-  late final GeneratedColumn<bool> wasOk = GeneratedColumn<bool>(
-    'was_ok',
+  late final GeneratedColumn<int> exerciseMinutes = GeneratedColumn<int>(
+    'exercise_minutes',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _includePomodoroWorkMeta =
+      const VerificationMeta('includePomodoroWork');
+  @override
+  late final GeneratedColumn<bool> includePomodoroWork = GeneratedColumn<bool>(
+    'include_pomodoro_work',
     aliasedName,
     false,
     type: DriftSqlType.bool,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
     defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'CHECK ("was_ok" IN (0, 1))',
+      'CHECK ("include_pomodoro_work" IN (0, 1))',
     ),
+    defaultValue: const Constant(false),
   );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
@@ -508,7 +522,8 @@ class $DailyEntriesTable extends DailyEntries
     sleepHours,
     workHours,
     mood,
-    wasOk,
+    exerciseMinutes,
+    includePomodoroWork,
     createdAt,
     synced,
   ];
@@ -561,13 +576,23 @@ class $DailyEntriesTable extends DailyEntries
     } else if (isInserting) {
       context.missing(_moodMeta);
     }
-    if (data.containsKey('was_ok')) {
+    if (data.containsKey('exercise_minutes')) {
       context.handle(
-        _wasOkMeta,
-        wasOk.isAcceptableOrUnknown(data['was_ok']!, _wasOkMeta),
+        _exerciseMinutesMeta,
+        exerciseMinutes.isAcceptableOrUnknown(
+          data['exercise_minutes']!,
+          _exerciseMinutesMeta,
+        ),
       );
-    } else if (isInserting) {
-      context.missing(_wasOkMeta);
+    }
+    if (data.containsKey('include_pomodoro_work')) {
+      context.handle(
+        _includePomodoroWorkMeta,
+        includePomodoroWork.isAcceptableOrUnknown(
+          data['include_pomodoro_work']!,
+          _includePomodoroWorkMeta,
+        ),
+      );
     }
     if (data.containsKey('created_at')) {
       context.handle(
@@ -610,9 +635,13 @@ class $DailyEntriesTable extends DailyEntries
         DriftSqlType.int,
         data['${effectivePrefix}mood'],
       )!,
-      wasOk: attachedDatabase.typeMapping.read(
+      exerciseMinutes: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}exercise_minutes'],
+      )!,
+      includePomodoroWork: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
-        data['${effectivePrefix}was_ok'],
+        data['${effectivePrefix}include_pomodoro_work'],
       )!,
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
@@ -637,7 +666,8 @@ class DailyEntryRow extends DataClass implements Insertable<DailyEntryRow> {
   final double sleepHours;
   final double workHours;
   final int mood;
-  final bool wasOk;
+  final int exerciseMinutes;
+  final bool includePomodoroWork;
   final DateTime createdAt;
   final bool synced;
   const DailyEntryRow({
@@ -646,7 +676,8 @@ class DailyEntryRow extends DataClass implements Insertable<DailyEntryRow> {
     required this.sleepHours,
     required this.workHours,
     required this.mood,
-    required this.wasOk,
+    required this.exerciseMinutes,
+    required this.includePomodoroWork,
     required this.createdAt,
     required this.synced,
   });
@@ -658,7 +689,8 @@ class DailyEntryRow extends DataClass implements Insertable<DailyEntryRow> {
     map['sleep_hours'] = Variable<double>(sleepHours);
     map['work_hours'] = Variable<double>(workHours);
     map['mood'] = Variable<int>(mood);
-    map['was_ok'] = Variable<bool>(wasOk);
+    map['exercise_minutes'] = Variable<int>(exerciseMinutes);
+    map['include_pomodoro_work'] = Variable<bool>(includePomodoroWork);
     map['created_at'] = Variable<DateTime>(createdAt);
     map['synced'] = Variable<bool>(synced);
     return map;
@@ -671,7 +703,8 @@ class DailyEntryRow extends DataClass implements Insertable<DailyEntryRow> {
       sleepHours: Value(sleepHours),
       workHours: Value(workHours),
       mood: Value(mood),
-      wasOk: Value(wasOk),
+      exerciseMinutes: Value(exerciseMinutes),
+      includePomodoroWork: Value(includePomodoroWork),
       createdAt: Value(createdAt),
       synced: Value(synced),
     );
@@ -688,7 +721,10 @@ class DailyEntryRow extends DataClass implements Insertable<DailyEntryRow> {
       sleepHours: serializer.fromJson<double>(json['sleepHours']),
       workHours: serializer.fromJson<double>(json['workHours']),
       mood: serializer.fromJson<int>(json['mood']),
-      wasOk: serializer.fromJson<bool>(json['wasOk']),
+      exerciseMinutes: serializer.fromJson<int>(json['exerciseMinutes']),
+      includePomodoroWork: serializer.fromJson<bool>(
+        json['includePomodoroWork'],
+      ),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       synced: serializer.fromJson<bool>(json['synced']),
     );
@@ -702,7 +738,8 @@ class DailyEntryRow extends DataClass implements Insertable<DailyEntryRow> {
       'sleepHours': serializer.toJson<double>(sleepHours),
       'workHours': serializer.toJson<double>(workHours),
       'mood': serializer.toJson<int>(mood),
-      'wasOk': serializer.toJson<bool>(wasOk),
+      'exerciseMinutes': serializer.toJson<int>(exerciseMinutes),
+      'includePomodoroWork': serializer.toJson<bool>(includePomodoroWork),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'synced': serializer.toJson<bool>(synced),
     };
@@ -714,7 +751,8 @@ class DailyEntryRow extends DataClass implements Insertable<DailyEntryRow> {
     double? sleepHours,
     double? workHours,
     int? mood,
-    bool? wasOk,
+    int? exerciseMinutes,
+    bool? includePomodoroWork,
     DateTime? createdAt,
     bool? synced,
   }) => DailyEntryRow(
@@ -723,7 +761,8 @@ class DailyEntryRow extends DataClass implements Insertable<DailyEntryRow> {
     sleepHours: sleepHours ?? this.sleepHours,
     workHours: workHours ?? this.workHours,
     mood: mood ?? this.mood,
-    wasOk: wasOk ?? this.wasOk,
+    exerciseMinutes: exerciseMinutes ?? this.exerciseMinutes,
+    includePomodoroWork: includePomodoroWork ?? this.includePomodoroWork,
     createdAt: createdAt ?? this.createdAt,
     synced: synced ?? this.synced,
   );
@@ -736,7 +775,12 @@ class DailyEntryRow extends DataClass implements Insertable<DailyEntryRow> {
           : this.sleepHours,
       workHours: data.workHours.present ? data.workHours.value : this.workHours,
       mood: data.mood.present ? data.mood.value : this.mood,
-      wasOk: data.wasOk.present ? data.wasOk.value : this.wasOk,
+      exerciseMinutes: data.exerciseMinutes.present
+          ? data.exerciseMinutes.value
+          : this.exerciseMinutes,
+      includePomodoroWork: data.includePomodoroWork.present
+          ? data.includePomodoroWork.value
+          : this.includePomodoroWork,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       synced: data.synced.present ? data.synced.value : this.synced,
     );
@@ -750,7 +794,8 @@ class DailyEntryRow extends DataClass implements Insertable<DailyEntryRow> {
           ..write('sleepHours: $sleepHours, ')
           ..write('workHours: $workHours, ')
           ..write('mood: $mood, ')
-          ..write('wasOk: $wasOk, ')
+          ..write('exerciseMinutes: $exerciseMinutes, ')
+          ..write('includePomodoroWork: $includePomodoroWork, ')
           ..write('createdAt: $createdAt, ')
           ..write('synced: $synced')
           ..write(')'))
@@ -764,7 +809,8 @@ class DailyEntryRow extends DataClass implements Insertable<DailyEntryRow> {
     sleepHours,
     workHours,
     mood,
-    wasOk,
+    exerciseMinutes,
+    includePomodoroWork,
     createdAt,
     synced,
   );
@@ -777,7 +823,8 @@ class DailyEntryRow extends DataClass implements Insertable<DailyEntryRow> {
           other.sleepHours == this.sleepHours &&
           other.workHours == this.workHours &&
           other.mood == this.mood &&
-          other.wasOk == this.wasOk &&
+          other.exerciseMinutes == this.exerciseMinutes &&
+          other.includePomodoroWork == this.includePomodoroWork &&
           other.createdAt == this.createdAt &&
           other.synced == this.synced);
 }
@@ -788,7 +835,8 @@ class DailyEntriesCompanion extends UpdateCompanion<DailyEntryRow> {
   final Value<double> sleepHours;
   final Value<double> workHours;
   final Value<int> mood;
-  final Value<bool> wasOk;
+  final Value<int> exerciseMinutes;
+  final Value<bool> includePomodoroWork;
   final Value<DateTime> createdAt;
   final Value<bool> synced;
   final Value<int> rowid;
@@ -798,7 +846,8 @@ class DailyEntriesCompanion extends UpdateCompanion<DailyEntryRow> {
     this.sleepHours = const Value.absent(),
     this.workHours = const Value.absent(),
     this.mood = const Value.absent(),
-    this.wasOk = const Value.absent(),
+    this.exerciseMinutes = const Value.absent(),
+    this.includePomodoroWork = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.synced = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -809,7 +858,8 @@ class DailyEntriesCompanion extends UpdateCompanion<DailyEntryRow> {
     required double sleepHours,
     required double workHours,
     required int mood,
-    required bool wasOk,
+    this.exerciseMinutes = const Value.absent(),
+    this.includePomodoroWork = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.synced = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -817,15 +867,15 @@ class DailyEntriesCompanion extends UpdateCompanion<DailyEntryRow> {
        date = Value(date),
        sleepHours = Value(sleepHours),
        workHours = Value(workHours),
-       mood = Value(mood),
-       wasOk = Value(wasOk);
+       mood = Value(mood);
   static Insertable<DailyEntryRow> custom({
     Expression<String>? id,
     Expression<String>? date,
     Expression<double>? sleepHours,
     Expression<double>? workHours,
     Expression<int>? mood,
-    Expression<bool>? wasOk,
+    Expression<int>? exerciseMinutes,
+    Expression<bool>? includePomodoroWork,
     Expression<DateTime>? createdAt,
     Expression<bool>? synced,
     Expression<int>? rowid,
@@ -836,7 +886,9 @@ class DailyEntriesCompanion extends UpdateCompanion<DailyEntryRow> {
       if (sleepHours != null) 'sleep_hours': sleepHours,
       if (workHours != null) 'work_hours': workHours,
       if (mood != null) 'mood': mood,
-      if (wasOk != null) 'was_ok': wasOk,
+      if (exerciseMinutes != null) 'exercise_minutes': exerciseMinutes,
+      if (includePomodoroWork != null)
+        'include_pomodoro_work': includePomodoroWork,
       if (createdAt != null) 'created_at': createdAt,
       if (synced != null) 'synced': synced,
       if (rowid != null) 'rowid': rowid,
@@ -849,7 +901,8 @@ class DailyEntriesCompanion extends UpdateCompanion<DailyEntryRow> {
     Value<double>? sleepHours,
     Value<double>? workHours,
     Value<int>? mood,
-    Value<bool>? wasOk,
+    Value<int>? exerciseMinutes,
+    Value<bool>? includePomodoroWork,
     Value<DateTime>? createdAt,
     Value<bool>? synced,
     Value<int>? rowid,
@@ -860,7 +913,8 @@ class DailyEntriesCompanion extends UpdateCompanion<DailyEntryRow> {
       sleepHours: sleepHours ?? this.sleepHours,
       workHours: workHours ?? this.workHours,
       mood: mood ?? this.mood,
-      wasOk: wasOk ?? this.wasOk,
+      exerciseMinutes: exerciseMinutes ?? this.exerciseMinutes,
+      includePomodoroWork: includePomodoroWork ?? this.includePomodoroWork,
       createdAt: createdAt ?? this.createdAt,
       synced: synced ?? this.synced,
       rowid: rowid ?? this.rowid,
@@ -885,8 +939,11 @@ class DailyEntriesCompanion extends UpdateCompanion<DailyEntryRow> {
     if (mood.present) {
       map['mood'] = Variable<int>(mood.value);
     }
-    if (wasOk.present) {
-      map['was_ok'] = Variable<bool>(wasOk.value);
+    if (exerciseMinutes.present) {
+      map['exercise_minutes'] = Variable<int>(exerciseMinutes.value);
+    }
+    if (includePomodoroWork.present) {
+      map['include_pomodoro_work'] = Variable<bool>(includePomodoroWork.value);
     }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
@@ -908,7 +965,8 @@ class DailyEntriesCompanion extends UpdateCompanion<DailyEntryRow> {
           ..write('sleepHours: $sleepHours, ')
           ..write('workHours: $workHours, ')
           ..write('mood: $mood, ')
-          ..write('wasOk: $wasOk, ')
+          ..write('exerciseMinutes: $exerciseMinutes, ')
+          ..write('includePomodoroWork: $includePomodoroWork, ')
           ..write('createdAt: $createdAt, ')
           ..write('synced: $synced, ')
           ..write('rowid: $rowid')
@@ -4258,7 +4316,8 @@ typedef $$DailyEntriesTableCreateCompanionBuilder =
       required double sleepHours,
       required double workHours,
       required int mood,
-      required bool wasOk,
+      Value<int> exerciseMinutes,
+      Value<bool> includePomodoroWork,
       Value<DateTime> createdAt,
       Value<bool> synced,
       Value<int> rowid,
@@ -4270,7 +4329,8 @@ typedef $$DailyEntriesTableUpdateCompanionBuilder =
       Value<double> sleepHours,
       Value<double> workHours,
       Value<int> mood,
-      Value<bool> wasOk,
+      Value<int> exerciseMinutes,
+      Value<bool> includePomodoroWork,
       Value<DateTime> createdAt,
       Value<bool> synced,
       Value<int> rowid,
@@ -4310,8 +4370,13 @@ class $$DailyEntriesTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<bool> get wasOk => $composableBuilder(
-    column: $table.wasOk,
+  ColumnFilters<int> get exerciseMinutes => $composableBuilder(
+    column: $table.exerciseMinutes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get includePomodoroWork => $composableBuilder(
+    column: $table.includePomodoroWork,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -4360,8 +4425,13 @@ class $$DailyEntriesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<bool> get wasOk => $composableBuilder(
-    column: $table.wasOk,
+  ColumnOrderings<int> get exerciseMinutes => $composableBuilder(
+    column: $table.exerciseMinutes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get includePomodoroWork => $composableBuilder(
+    column: $table.includePomodoroWork,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -4402,8 +4472,15 @@ class $$DailyEntriesTableAnnotationComposer
   GeneratedColumn<int> get mood =>
       $composableBuilder(column: $table.mood, builder: (column) => column);
 
-  GeneratedColumn<bool> get wasOk =>
-      $composableBuilder(column: $table.wasOk, builder: (column) => column);
+  GeneratedColumn<int> get exerciseMinutes => $composableBuilder(
+    column: $table.exerciseMinutes,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get includePomodoroWork => $composableBuilder(
+    column: $table.includePomodoroWork,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -4448,7 +4525,8 @@ class $$DailyEntriesTableTableManager
                 Value<double> sleepHours = const Value.absent(),
                 Value<double> workHours = const Value.absent(),
                 Value<int> mood = const Value.absent(),
-                Value<bool> wasOk = const Value.absent(),
+                Value<int> exerciseMinutes = const Value.absent(),
+                Value<bool> includePomodoroWork = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<bool> synced = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -4458,7 +4536,8 @@ class $$DailyEntriesTableTableManager
                 sleepHours: sleepHours,
                 workHours: workHours,
                 mood: mood,
-                wasOk: wasOk,
+                exerciseMinutes: exerciseMinutes,
+                includePomodoroWork: includePomodoroWork,
                 createdAt: createdAt,
                 synced: synced,
                 rowid: rowid,
@@ -4470,7 +4549,8 @@ class $$DailyEntriesTableTableManager
                 required double sleepHours,
                 required double workHours,
                 required int mood,
-                required bool wasOk,
+                Value<int> exerciseMinutes = const Value.absent(),
+                Value<bool> includePomodoroWork = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<bool> synced = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -4480,7 +4560,8 @@ class $$DailyEntriesTableTableManager
                 sleepHours: sleepHours,
                 workHours: workHours,
                 mood: mood,
-                wasOk: wasOk,
+                exerciseMinutes: exerciseMinutes,
+                includePomodoroWork: includePomodoroWork,
                 createdAt: createdAt,
                 synced: synced,
                 rowid: rowid,

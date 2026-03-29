@@ -5,10 +5,12 @@ import '../../../core/auth_providers.dart';
 import '../../widgets/aura_background.dart';
 import '../../widgets/glass_card.dart';
 
-enum _AuthMode { login, register }
+enum AuthScreenMode { login, register }
 
 class AuthScreen extends ConsumerStatefulWidget {
-  const AuthScreen({super.key});
+  const AuthScreen({super.key, this.initialMode = AuthScreenMode.login});
+
+  final AuthScreenMode initialMode;
 
   @override
   ConsumerState<AuthScreen> createState() => _AuthScreenState();
@@ -19,9 +21,15 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   final _usernameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  _AuthMode _mode = _AuthMode.login;
+  late AuthScreenMode _mode;
 
   static final _emailRegex = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
+
+  @override
+  void initState() {
+    super.initState();
+    _mode = widget.initialMode;
+  }
 
   @override
   void dispose() {
@@ -39,7 +47,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
 
-    if (_mode == _AuthMode.login) {
+    if (_mode == AuthScreenMode.login) {
       await authNotifier.login(email: email, password: password);
       return;
     }
@@ -56,7 +64,15 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authControllerProvider);
     final isLoading = authState.isLoading;
-    final isLoginMode = _mode == _AuthMode.login;
+    final isLoginMode = _mode == AuthScreenMode.login;
+
+    if (authState.isAuthenticated && Navigator.of(context).canPop()) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+        }
+      });
+    }
 
     return AuraBackground(
       child: Scaffold(
@@ -87,15 +103,15 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                           style: Theme.of(context).textTheme.bodyMedium,
                         ),
                         const SizedBox(height: 16),
-                        SegmentedButton<_AuthMode>(
+                        SegmentedButton<AuthScreenMode>(
                           selected: {_mode},
                           segments: const [
-                            ButtonSegment<_AuthMode>(
-                              value: _AuthMode.login,
+                            ButtonSegment<AuthScreenMode>(
+                              value: AuthScreenMode.login,
                               label: Text('Login'),
                             ),
-                            ButtonSegment<_AuthMode>(
-                              value: _AuthMode.register,
+                            ButtonSegment<AuthScreenMode>(
+                              value: AuthScreenMode.register,
                               label: Text('Register'),
                             ),
                           ],

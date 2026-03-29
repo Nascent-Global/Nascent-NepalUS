@@ -84,7 +84,8 @@ class ApiDailyEntry {
     required this.sleepHours,
     required this.workHours,
     required this.mood,
-    required this.wasOk,
+    required this.exerciseMinutes,
+    required this.includePomodoroWork,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -94,7 +95,8 @@ class ApiDailyEntry {
   final double sleepHours;
   final double workHours;
   final int mood;
-  final bool wasOk;
+  final int exerciseMinutes;
+  final bool includePomodoroWork;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -105,7 +107,8 @@ class ApiDailyEntry {
       'sleep_hours': sleepHours,
       'work_hours': workHours,
       'mood': mood,
-      'was_ok': wasOk,
+      'exercise_minutes': exerciseMinutes,
+      'include_pomodoro_work': includePomodoroWork,
       'created_at': createdAt.toUtc().toIso8601String(),
       'updated_at': updatedAt.toUtc().toIso8601String(),
     };
@@ -118,7 +121,8 @@ class ApiDailyEntry {
       sleepHours: (json['sleep_hours'] as num).toDouble(),
       workHours: (json['work_hours'] as num).toDouble(),
       mood: (json['mood'] as num).toInt(),
-      wasOk: json['was_ok'] as bool,
+      exerciseMinutes: (json['exercise_minutes'] as num).toInt(),
+      includePomodoroWork: json['include_pomodoro_work'] as bool,
       createdAt: DateTime.parse(json['created_at'] as String).toUtc(),
       updatedAt: DateTime.parse(json['updated_at'] as String).toUtc(),
     );

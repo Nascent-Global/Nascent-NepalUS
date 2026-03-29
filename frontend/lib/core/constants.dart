@@ -29,8 +29,8 @@ class AppConstants {
     'sleep_recovery': 8,
     'break': 5,
     'workload_trim': 10,
+    'exercise_recovery': 7,
     'breathing': 6,
-    'focus_reset': 4,
     'general_recovery': 3,
   };
 }

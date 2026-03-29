@@ -16,7 +16,8 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen> {
   double _sleep = 7;
   double _work = 8;
   int _mood = 3;
-  bool _ok = true;
+  int _exercise = 20;
+  bool _includePomodoroWork = false;
   bool _submitting = false;
 
   Future<void> _submit() async {
@@ -30,7 +31,8 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen> {
       sleepHours: _sleep,
       workHours: _work,
       mood: _mood,
-      wasOk: _ok,
+      exerciseMinutes: _exercise,
+      includePomodoroWork: _includePomodoroWork,
     );
 
     ref.read(refreshTickProvider.notifier).bump();
@@ -66,7 +68,7 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen> {
                   onChanged: (v) => setState(() => _sleep = v),
                 ),
                 const SizedBox(height: 8),
-                Text('Work hours: ${_work.toStringAsFixed(1)}'),
+                Text('Manual work hours: ${_work.toStringAsFixed(1)}'),
                 Slider(
                   value: _work,
                   min: 0,
@@ -83,11 +85,23 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen> {
                   divisions: 4,
                   onChanged: (v) => setState(() => _mood = v.round()),
                 ),
+                const SizedBox(height: 8),
+                Text('Exercise: $_exercise minutes'),
+                Slider(
+                  value: _exercise.toDouble(),
+                  min: 0,
+                  max: 120,
+                  divisions: 24,
+                  onChanged: (v) => setState(() => _exercise = v.round()),
+                ),
                 SwitchListTile(
-                  value: _ok,
-                  title: const Text('I felt okay today'),
+                  value: _includePomodoroWork,
+                  title: const Text('Include completed pomodoro in work hours'),
+                  subtitle: const Text(
+                    'If on, burnout scoring adds today\'s completed pomodoro time to manual work hours.',
+                  ),
                   contentPadding: EdgeInsets.zero,
-                  onChanged: (v) => setState(() => _ok = v),
+                  onChanged: (v) => setState(() => _includePomodoroWork = v),
                 ),
                 const SizedBox(height: 8),
                 FilledButton.icon(

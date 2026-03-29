@@ -52,15 +52,33 @@ class AuthApiClient {
     return AuthUser.fromJson(userJson);
   }
 
+  Future<AuthSession> refresh({required String refreshToken}) async {
+    final body = await _post(ApiPaths.authRefresh, {
+      'refresh_token': refreshToken,
+    });
+    final data = _extractDataEnvelope(body);
+    return AuthSession.fromJson(data);
+  }
+
+  Future<void> logout({required String token}) async {
+    await _post(
+      ApiPaths.authLogout,
+      const {},
+      headers: {'Authorization': 'Bearer $token'},
+    );
+  }
+
   Future<Map<String, dynamic>> _post(
     String path,
-    Map<String, dynamic> payload,
-  ) async {
+    Map<String, dynamic> payload, {
+    Map<String, String> headers = const {},
+  }) async {
     final response = await _httpClient.post(
       _uri(path),
-      headers: const {
+      headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
+        ...headers,
       },
       body: jsonEncode(payload),
     );

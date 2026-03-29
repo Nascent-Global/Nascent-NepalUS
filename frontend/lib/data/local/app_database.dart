@@ -46,7 +46,10 @@ class DailyEntries extends Table {
   IntColumn get mood =>
       integer().customConstraint('NOT NULL CHECK (mood BETWEEN 1 AND 5)')();
 
-  BoolColumn get wasOk => boolean()();
+  IntColumn get exerciseMinutes => integer().withDefault(const Constant(0))();
+
+  BoolColumn get includePomodoroWork =>
+      boolean().withDefault(const Constant(false))();
 
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 
@@ -239,7 +242,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration {
@@ -268,6 +271,16 @@ class AppDatabase extends _$AppDatabase {
         await customStatement(
           'CREATE INDEX IF NOT EXISTS idx_pomodoro_start ON ${DbTables.pomodoroSessions}(start_time)',
         );
+      },
+      onUpgrade: (Migrator m, int from, int to) async {
+        if (from < 2) {
+          await customStatement(
+            'ALTER TABLE ${DbTables.dailyEntries} ADD COLUMN exercise_minutes INTEGER NOT NULL DEFAULT 0',
+          );
+          await customStatement(
+            'ALTER TABLE ${DbTables.dailyEntries} ADD COLUMN include_pomodoro_work INTEGER NOT NULL DEFAULT 0',
+          );
+        }
       },
       beforeOpen: (details) async {
         await customStatement('PRAGMA foreign_keys = ON');
